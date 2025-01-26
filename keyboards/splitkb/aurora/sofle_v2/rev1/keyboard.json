@@ -15,7 +15,7 @@
         "rgb_matrix": true
     },
     "matrix_pins": {
-        "cols": ["D4", "C6", "D7", "E6", "B4", "B5"],
+        "cols": ["D4", "C6", "D7", "E6", "B2", "B6"],
         "rows": ["F5", "B1", "F7", "F6", "B3"]
     },
     "rgb_matrix": {
