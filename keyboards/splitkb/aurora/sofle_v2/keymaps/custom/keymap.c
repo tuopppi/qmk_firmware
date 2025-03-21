@@ -49,39 +49,39 @@ const uint32_t PROGMEM unicode_map[] = {
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [DEFAULT] = LAYOUT(
-            XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   ,                             XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX    , XXXXXXX  ,
-            XXXXXXX     , XXXXXXX  , KC_W     , KC_D      , KC_R      , KC_K      ,                             KC_Y      , KC_U      , KC_I      , KC_O      , XXXXXXX    , XXXXXXX  ,
-            XXXXXXX     , KC_Q     , CKC_S    , CKC_T     , CKC_V     , KC_G      ,                             KC_H      , CKC_N     , CKC_E     , CKC_L     , KC_OE      , XXXXXXX  ,
-            CKC_ESC_Z   , CKC_A    , KC_X     , KC_C      , KC_F      , KC_B      , XXXXXXX     , XXXXXXX     , KC_J      , KC_M      , KC_COMMA  , KC_DOT    , CKC_P      , KC_QUOTE ,
-                                   XXXXXXX  , XXXXXXX   , OSL(NUMNAV) , KC_AE     , OSL(SYMBOL)   , KC_SPACE  , CKC_BSPC  , OSL(SPECIAL)    , XXXXXXX   , XXXXXXX
+            XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   ,               /* */               XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX    , XXXXXXX  ,
+            XXXXXXX     , XXXXXXX  , KC_W     , KC_D      , KC_R      , KC_K      ,               /* */               KC_Y      , KC_U      , KC_I      , KC_O      , XXXXXXX    , XXXXXXX  ,
+            XXXXXXX     , KC_Q     , CKC_S    , CKC_T     , CKC_V     , KC_G      ,               /* */               KC_H      , CKC_N     , CKC_E     , CKC_L     , KC_OE      , XXXXXXX  ,
+            CKC_ESC_Z   , CKC_A    , KC_X     , KC_C      , KC_F      , KC_B      , XXXXXXX     , /* */ XXXXXXX     , KC_J      , KC_M      , KC_COMMA  , KC_DOT    , CKC_P      , KC_QUOTE ,
+                                   XXXXXXX  , XXXXXXX   , OSL(NUMNAV) , KC_AE     , OSL(SYMBOL) , /* */ KC_SPACE    , CKC_BSPC  , OSL(SPECIAL)    , XXXXXXX   , XXXXXXX
     ),
     [SYMBOL] = LAYOUT(
-            XXXXXXX     , XXXXXXX      , XXXXXXX , XXXXXXX , XXXXXXX , XXXXXXX                                    , XXXXXXX     , XXXXXXX     , XXXXXXX     , XXXXXXX     , XXXXXXX      , XXXXXXX    ,
-            XXXXXXX     , XXXXXXX      , KC_LT , KC_GT , KC_GRAVE , KC_NO                               , KC_AMPERSAND , KC_SEMICOLON     , KC_LEFT_BRACKET     , KC_RIGHT_BRACKET     , XXXXXXX      , XXXXXXX    ,
-            XXXXXXX     , KC_CIRCUMFLEX , CW_TOGG  , KC_PLUS , KC_EQUAL , KC_HASH                       , KC_PIPE      , KC_COLON     , KC_LEFT_PAREN     , KC_RIGHT_PAREN     , KC_QUESTION      , XXXXXXX    ,
-            KC_NO     , KC_EXCLAIM , KC_SLASH , KC_ASTERISK , KC_BACKSLASH , KC_NO, XXXXXXX, XXXXXXX           , KC_TILDE     , KC_DOLLAR,  KC_LEFT_CURLY_BRACE      , KC_RIGHT_CURLY_BRACE      , KC_AT  , KC_NO ,
-                                     XXXXXXX , XXXXXXX , KC_TRANSPARENT , KC_TRANSPARENT , KC_TRANSPARENT , G(KC_Z)   , SGUI(KC_Z)   , KC_NO    , XXXXXXX     , XXXXXXX
+            XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   ,               /* */               XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX    , XXXXXXX  ,
+            XXXXXXX     , XXXXXXX  , KC_LT    , KC_GT     , KC_GRAVE  , XXXXXXX   ,               /* */               KC_AMPERSAND, KC_SEMICOLON, KC_LEFT_BRACKET, KC_RIGHT_BRACKET, XXXXXXX, XXXXXXX  ,
+            XXXXXXX     , KC_CIRCUMFLEX, CW_TOGG, KC_PLUS , KC_EQUAL  , KC_HASH   ,               /* */               KC_PIPE   , KC_COLON  , KC_LEFT_PAREN, KC_RIGHT_PAREN, KC_QUESTION, XXXXXXX  ,
+            XXXXXXX     , KC_EXCLAIM, KC_SLASH, KC_ASTERISK, KC_BACKSLASH, XXXXXXX, XXXXXXX     , /* */ XXXXXXX     , KC_TILDE  , KC_DOLLAR , KC_LEFT_CURLY_BRACE, KC_RIGHT_CURLY_BRACE, KC_AT, XXXXXXX,
+                                     XXXXXXX  , XXXXXXX   , KC_TRNS   , KC_TRNS   , KC_TRNS     , /* */ G(KC_Z)     , SGUI(KC_Z), XXXXXXX   , XXXXXXX   , XXXXXXX
     ),
     [NUMNAV] = LAYOUT(
-            XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX  , XXXXXXX  , XXXXXXX                                  , XXXXXXX     , XXXXXXX     , XXXXXXX     , XXXXXXX     , XXXXXXX      , XXXXXXX    ,
-            XXXXXXX     , XXXXXXX  , KC_F1    , KC_UP    , KC_F2    , KC_NO                                    , KC_NO , KC_7     , KC_8     , KC_9     , XXXXXXX      , XXXXXXX    ,
-            XXXXXXX     , KC_NO    , KC_LEFT  , KC_DOWN  , KC_RIGHT , KC_NO                                    , KC_NO      , KC_4     , KC_5     , KC_6     , KC_NO      , XXXXXXX    ,
-            KC_NO       , KC_NO    , G(KC_X)  , G(KC_C)  , G(KC_V)  , KC_NO       , XXXXXXX, XXXXXXX           , KC_0     , KC_1,  KC_2      , KC_3      , KC_NO  , KC_NO ,
-                                   XXXXXXX    , XXXXXXX  , KC_NO    , KC_NO       , KC_NO  , KC_NO   , KC_NO   , KC_NO    , XXXXXXX     , XXXXXXX
+            XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   ,               /* */               XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX    , XXXXXXX  ,
+            XXXXXXX     , XXXXXXX  , KC_F1    , KC_UP     , KC_F2     , XXXXXXX   ,               /* */               XXXXXXX   , KC_7      , KC_8      , KC_9      , XXXXXXX    , XXXXXXX  ,
+            XXXXXXX     , KC_HOME  , KC_LEFT  , KC_DOWN   , KC_RIGHT  , KC_END    ,               /* */               XXXXXXX   , KC_4      , KC_5      , KC_6      , XXXXXXX    , XXXXXXX  ,
+            XXXXXXX     , XXXXXXX  , G(KC_X)  , G(KC_C)   , G(KC_V)   , XXXXXXX   , XXXXXXX     , /* */ XXXXXXX     , KC_0      , KC_1      , KC_2      , KC_3      , XXXXXXX    , XXXXXXX  ,
+                                     XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX     , /* */ XXXXXXX     , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX
     ),
     [MOUSE] = LAYOUT(
-            XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX  , XXXXXXX , XXXXXXX                                    , XXXXXXX     , XXXXXXX     , XXXXXXX     , XXXXXXX     , XXXXXXX      , XXXXXXX    ,
-            XXXXXXX     , XXXXXXX  , KC_NO    , KC_NO    , KC_SCREENCAP , KC_SCREENSHOT                               , MS_BTN3 , MS_BTN1     , MS_UP     , MS_BTN2     , XXXXXXX      , XXXXXXX    ,
-            XXXXXXX     , KC_NO    , KC_NO    , KC_NO    , KC_NO , KC_NO                       , KC_NO      , MS_LEFT     , MS_DOWN     , MS_RGHT     , KC_NO      , XXXXXXX    ,
-            KC_QUIT     , KC_NO    , KC_NO    , KC_NO    , KC_NO , KC_NO, XXXXXXX, XXXXXXX           , KC_NO     , KC_NO,  KC_NO      , KC_NO      , KC_NO  , KC_NO ,
-                                     XXXXXXX  , XXXXXXX  , KC_NO , KC_NO , KC_NO , KC_NO   , KC_NO   , KC_NO    , XXXXXXX     , XXXXXXX
+            XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   ,               /* */               XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX    , XXXXXXX  ,
+            XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX   , KC_SCREENCAP, KC_SCREENSHOT,          /* */               MS_BTN3   , MS_BTN1   , MS_UP     , MS_BTN2   , XXXXXXX    , XXXXXXX  ,
+            XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   ,               /* */               XXXXXXX   , MS_LEFT   , MS_DOWN   , MS_RGHT   , XXXXXXX    , XXXXXXX  ,
+            KC_QUIT     , XXXXXXX  , XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX     , /* */ XXXXXXX     , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX    , XXXXXXX  ,
+                                     XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX     , /* */ XXXXXXX     , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX
     ),
     [SPECIAL] = LAYOUT(
-            XXXXXXX     , XXXXXXX      , XXXXXXX , XXXXXXX , XXXXXXX , XXXXXXX                                    , XXXXXXX     , XXXXXXX     , XXXXXXX     , XXXXXXX     , XXXXXXX      , XXXXXXX    ,
-            XXXXXXX     , XXXXXXX      , KC_NO , KC_NO , KC_NO , KC_NO                               , KC_NO , KC_NO     ,   KC_NO   , KC_NO     , XXXXXXX      , XXXXXXX    ,
-            XXXXXXX     , KC_NO        , KC_NO  , KC_NO , KC_NO , KC_NO                       , KC_NO      , KC_NO     , KC_NO     , KC_NO     , KC_NO      , XXXXXXX    ,
-            KC_NO     , KC_NO , KC_NO , KC_NO , KC_NO , KC_NO, XXXXXXX, XXXXXXX           , KC_NO     , KC_NO,  KC_NO      , KC_NO      , KC_NO  , KC_NO ,
-                                     XXXXXXX , XXXXXXX , KC_NO , KC_NO , KC_NO , KC_NO   , KC_NO   , KC_NO    , XXXXXXX     , XXXXXXX
+            XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   ,               /* */               XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX    , XXXXXXX  ,
+            XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   ,               /* */               XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX    , XXXXXXX  ,
+            XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   ,               /* */               XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX    , XXXXXXX  ,
+            XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX     , /* */ XXXXXXX     , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX    , XXXXXXX  ,
+                                     XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX     , /* */ XXXXXXX     , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX
     )
 };
 
@@ -133,6 +133,18 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     return true; // Process all other keycodes normally
 }
 
+#define SMTD_TD_HOLD_ON_MKEY(macro_key, tap_key, hold_key, threshold, use_cl) \
+    SMTD_DANCE(macro_key,                                        \
+        NOTHING,                                                 \
+        SMTD_TAP_16(use_cl, tap_key),                            \
+        SMTD_LIMIT(threshold,                                    \
+            SMTD_TAP_16(use_cl, hold_key),                       \
+            SMTD_REGISTER_16(use_cl, tap_key)),                       \
+        SMTD_LIMIT(threshold,                                    \
+            SMTD_UNREGISTER_16(use_cl, hold_key),                \
+            SMTD_UNREGISTER_16(use_cl, tap_key))                 \
+    )
+
 smtd_resolution on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
     switch (keycode) {
         // home row mods
@@ -147,7 +159,7 @@ smtd_resolution on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap
 
         // tap dance
         SMTD_TD_ON_MKEY(CKC_ESC_Z, KC_ESC, KC_Z)
-        SMTD_TD_ON_MKEY(CKC_BSPC, KC_BSPC, A(KC_BSPC))
+        SMTD_TD_HOLD_ON_MKEY(CKC_BSPC, KC_BSPC, A(KC_BSPC), 2, true)
     }
 
     return SMTD_RESOLUTION_UNHANDLED;

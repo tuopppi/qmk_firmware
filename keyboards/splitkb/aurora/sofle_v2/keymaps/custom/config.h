@@ -6,3 +6,4 @@
 
 //#define SMTD_DEBUG_ENABLED
 #define MAX_DEFERRED_EXECUTORS 10 // sm_td
+#define TAPPING_TERM 300
