@@ -41,8 +41,11 @@ const uint32_t PROGMEM unicode_map[] = {
     [OE] = 0x00D6,
 };
 
+#define KC_QUIT (QK_LCTL | QK_LGUI | KC_Q)
 #define KC_OE  UP(oe, OE)
 #define KC_AE  UP(ae, AE)
+#define KC_SCREENSHOT LSG(KC_4)
+#define KC_SCREENCAP  LSG(KC_5)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [DEFAULT] = LAYOUT(
@@ -67,11 +70,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                    XXXXXXX    , XXXXXXX  , KC_NO    , KC_NO       , KC_NO  , KC_NO   , KC_NO   , KC_NO    , XXXXXXX     , XXXXXXX
     ),
     [MOUSE] = LAYOUT(
-            XXXXXXX     , XXXXXXX      , XXXXXXX , XXXXXXX , XXXXXXX , XXXXXXX                                    , XXXXXXX     , XXXXXXX     , XXXXXXX     , XXXXXXX     , XXXXXXX      , XXXXXXX    ,
-            XXXXXXX     , XXXXXXX      , KC_NO , KC_NO , KC_NO , KC_NO                               , MS_BTN3 , MS_BTN1     , MS_UP     , MS_BTN2     , XXXXXXX      , XXXXXXX    ,
-            XXXXXXX     , KC_NO        , KC_NO  , KC_NO , KC_NO , KC_NO                       , KC_NO      , MS_LEFT     , MS_DOWN     , MS_RGHT     , KC_NO      , XXXXXXX    ,
-            KC_NO     , KC_NO , KC_NO , KC_NO , KC_NO , KC_NO, XXXXXXX, XXXXXXX           , KC_NO     , KC_NO,  KC_NO      , KC_NO      , KC_NO  , KC_NO ,
-                                     XXXXXXX , XXXXXXX , KC_NO , KC_NO , KC_NO , KC_NO   , KC_NO   , KC_NO    , XXXXXXX     , XXXXXXX
+            XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX  , XXXXXXX , XXXXXXX                                    , XXXXXXX     , XXXXXXX     , XXXXXXX     , XXXXXXX     , XXXXXXX      , XXXXXXX    ,
+            XXXXXXX     , XXXXXXX  , KC_NO    , KC_NO    , KC_SCREENCAP , KC_SCREENSHOT                               , MS_BTN3 , MS_BTN1     , MS_UP     , MS_BTN2     , XXXXXXX      , XXXXXXX    ,
+            XXXXXXX     , KC_NO    , KC_NO    , KC_NO    , KC_NO , KC_NO                       , KC_NO      , MS_LEFT     , MS_DOWN     , MS_RGHT     , KC_NO      , XXXXXXX    ,
+            KC_QUIT     , KC_NO    , KC_NO    , KC_NO    , KC_NO , KC_NO, XXXXXXX, XXXXXXX           , KC_NO     , KC_NO,  KC_NO      , KC_NO      , KC_NO  , KC_NO ,
+                                     XXXXXXX  , XXXXXXX  , KC_NO , KC_NO , KC_NO , KC_NO   , KC_NO   , KC_NO    , XXXXXXX     , XXXXXXX
     ),
     [SPECIAL] = LAYOUT(
             XXXXXXX     , XXXXXXX      , XXXXXXX , XXXXXXX , XXXXXXX , XXXXXXX                                    , XXXXXXX     , XXXXXXX     , XXXXXXX     , XXXXXXX     , XXXXXXX      , XXXXXXX    ,
