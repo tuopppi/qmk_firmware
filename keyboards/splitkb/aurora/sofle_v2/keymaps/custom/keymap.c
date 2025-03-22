@@ -67,13 +67,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
             XXXXXXX     , XXXXXXX  , KC_F1    , KC_UP     , KC_F2     , XXXXXXX   ,               /* */               XXXXXXX   , KC_7      , KC_8      , KC_9      , XXXXXXX    , XXXXXXX  ,
             XXXXXXX     , KC_HOME  , KC_LEFT  , KC_DOWN   , KC_RIGHT  , KC_END    ,               /* */               XXXXXXX   , KC_4      , KC_5      , KC_6      , XXXXXXX    , XXXXXXX  ,
             XXXXXXX     , XXXXXXX  , G(KC_X)  , G(KC_C)   , G(KC_V)   , XXXXXXX   , XXXXXXX     , /* */ XXXXXXX     , KC_0      , KC_1      , KC_2      , KC_3      , XXXXXXX    , XXXXXXX  ,
-                                     XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX     , /* */ XXXXXXX     , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX
+                                     XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX     , /* */ CKC_BSPC    , KC_DEL    , XXXXXXX   , XXXXXXX   , XXXXXXX
     ),
     [MOUSE] = LAYOUT(
             XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   ,               /* */               XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX    , XXXXXXX  ,
             XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX   , KC_SCREENCAP, KC_SCREENSHOT,          /* */               MS_BTN3   , MS_BTN1   , MS_UP     , MS_BTN2   , XXXXXXX    , XXXXXXX  ,
             XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   ,               /* */               XXXXXXX   , MS_LEFT   , MS_DOWN   , MS_RGHT   , XXXXXXX    , XXXXXXX  ,
-            KC_QUIT     , XXXXXXX  , XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX     , /* */ XXXXXXX     , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX    , XXXXXXX  ,
+            KC_QUIT     , XXXXXXX  , XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX     , /* */ XXXXXXX     , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX    , QK_BOOT  ,
                                      XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX     , /* */ XXXXXXX     , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX
     ),
     [SPECIAL] = LAYOUT(
