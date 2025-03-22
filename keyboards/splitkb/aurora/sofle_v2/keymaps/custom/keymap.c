@@ -139,7 +139,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         SMTD_TAP_16(use_cl, tap_key),                            \
         SMTD_LIMIT(threshold,                                    \
             SMTD_TAP_16(use_cl, hold_key),                       \
-            SMTD_REGISTER_16(use_cl, tap_key)),                       \
+            SMTD_REGISTER_16(use_cl, tap_key)),                  \
         SMTD_LIMIT(threshold,                                    \
             SMTD_UNREGISTER_16(use_cl, hold_key),                \
             SMTD_UNREGISTER_16(use_cl, tap_key))                 \
