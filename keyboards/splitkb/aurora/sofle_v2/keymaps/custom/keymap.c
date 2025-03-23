@@ -133,6 +133,20 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     return true; // Process all other keycodes normally
 }
 
+// https://github.com/stasmarkin/sm_td/blob/main/docs/070_customization_timeouts.md
+// defaults are set in config.h
+uint32_t get_smtd_timeout(uint16_t keycode, smtd_timeout timeout) {
+    switch (keycode) {
+        case CKC_V:
+        case CKC_N:
+            // all but left and right shift SM_TD keys get short release
+            // timeout to avoid accidental triggering of tap dance keys
+            if (SMTD_TIMEOUT_RELEASE) return 200;
+    }
+
+    return get_smtd_timeout_default(timeout);
+}
+
 #define SMTD_TD_HOLD_ON_MKEY(macro_key, tap_key, hold_key, threshold, use_cl) \
     SMTD_DANCE(macro_key,                                        \
         NOTHING,                                                 \
