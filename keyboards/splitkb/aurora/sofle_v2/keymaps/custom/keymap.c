@@ -59,7 +59,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
             XXXXXXX     , XXXXXXX  , XXXXXXX  , XXXXXXX   , XXXXXXX   , XXXXXXX   ,               /* */               XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX   , XXXXXXX    , XXXXXXX  ,
             XXXXXXX     , XXXXXXX  , KC_LT    , KC_GT     , KC_GRAVE  , XXXXXXX   ,               /* */               KC_AMPERSAND, KC_SEMICOLON, KC_LEFT_BRACKET, KC_RIGHT_BRACKET, XXXXXXX, XXXXXXX  ,
             XXXXXXX     , KC_CIRCUMFLEX, CW_TOGG, KC_PLUS , KC_EQUAL  , KC_HASH   ,               /* */               KC_PIPE   , KC_COLON  , KC_LEFT_PAREN, KC_RIGHT_PAREN, KC_QUESTION, XXXXXXX  ,
-            XXXXXXX     , KC_EXCLAIM, KC_SLASH, KC_ASTERISK, KC_BACKSLASH, XXXXXXX, XXXXXXX     , /* */ XXXXXXX     , KC_TILDE  , KC_DOLLAR , KC_LEFT_CURLY_BRACE, KC_RIGHT_CURLY_BRACE, KC_AT, XXXXXXX,
+            XXXXXXX     , KC_EXCLAIM, KC_SLASH, KC_ASTERISK, KC_BACKSLASH, XXXXXXX, XXXXXXX     , /* */ XXXXXXX     , KC_TILDE  , KC_DOLLAR , KC_LEFT_CURLY_BRACE, KC_RIGHT_CURLY_BRACE, KC_AT, KC_PERCENT,
                                      XXXXXXX  , XXXXXXX   , KC_TRNS   , KC_TRNS   , KC_TRNS     , /* */ G(KC_Z)     , SGUI(KC_Z), XXXXXXX   , XXXXXXX   , XXXXXXX
     ),
     [NUMNAV] = LAYOUT(
@@ -141,7 +141,7 @@ uint32_t get_smtd_timeout(uint16_t keycode, smtd_timeout timeout) {
         case CKC_N:
             // all but left and right shift SM_TD keys get short release
             // timeout to avoid accidental triggering of tap dance keys
-            if (SMTD_TIMEOUT_RELEASE) return 200;
+            if (SMTD_TIMEOUT_RELEASE) return 90;
     }
 
     return get_smtd_timeout_default(timeout);
