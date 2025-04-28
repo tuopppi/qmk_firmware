@@ -1,1 +1,1 @@
-CONVERT_TO = liatris
+SERIAL_DRIVER = vendor

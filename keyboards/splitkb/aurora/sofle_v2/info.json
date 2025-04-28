@@ -1,10 +1,7 @@
 {
     "manufacturer": "splitkb.com",
     "maintainer": "splitkb",
-    "build": {
-        "lto": true
-    },
-    "development_board": "elite_c",
+    "development_board": "liatris",
     "split": {
         "enabled": true
     },
