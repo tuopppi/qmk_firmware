@@ -16,4 +16,4 @@
 
 #pragma once
 
-#define RGBLIGHT_EFFECT_BREATHING
+//#define RGBLIGHT_EFFECT_BREATHING
