@@ -8,14 +8,6 @@ MX8650::MX8650(uint8_t sclk, uint8_t sdio)
     setUp();
 }
 
-MX8650::MX8650(uint8_t sclk, uint8_t sdio, uint8_t cs)
-{
-    SCLK = sclk;
-    SDIO = sdio;
-    CS = cs;
-    setUp();
-}
-
 void MX8650::setUp()
 {
     pinMode(SCLK, OUTPUT);
@@ -23,24 +15,12 @@ void MX8650::setUp()
     pinMode(SDIO, INPUT);
     digitalWrite(SDIO, LOW);
 
-    if (CS > 0)
-        pinMode(CS, OUTPUT);
-
     writeToSPI(0x80 | SLEEP_MODE_ADDR, SLEEP_MODE_1);
     writeToSPI(0x80 | DPI_ADDR, DPI_1200);
     writeToSPI(0x80 | 0x09, 0x5A);
     writeToSPI(0x80 | IMG_THRES_ADDR, 0x04);
     writeToSPI(0x80 | IMG_RECG_ADDR, IMG_RATE_HIGH);
 
-}
-
-String MX8650::getLog()
-{
-    deviceFound = verify();
-    if (deviceFound == true)
-        return "Product ID: 0x" + getPID() + "\nOperational mode: 0x" + getOperationalMode() + "\nDPI: " + String(getDPI()) + "\nMotion status: " + getMotionStatus() + "\nMotion data: " + String(getMotionData()) + "\nDelta X: " + String(getDeltaX()) + "\tDelta Y: " + String(getDeltaY()) + "\nImage quality: " + String(getImageQuality()) + "\nOperation state: " + getOperationState() + "\nImage threshold: " + String(getImageThreshold()) + "\nImage recogonition rate: " + String(getImageRecRate());
-    else
-        return "No MX8650 has been detected. Check the connections or make sure it is working.";
 }
 
 bool MX8650::verify()
@@ -143,6 +123,15 @@ void MX8650::Log()
     Serial.println();
 }
 
+String MX8650::getLog()
+{
+    deviceFound = verify();
+    if (deviceFound == true)
+        return "Product ID: 0x" + getPID() + "\nOperational mode: 0x" + getOperationalMode() + "\nDPI: " + String(getDPI()) + "\nMotion status: " + getMotionStatus() + "\nMotion data: " + String(getMotionData()) + "\nDelta X: " + String(getDeltaX()) + "\tDelta Y: " + String(getDeltaY()) + "\nImage quality: " + String(getImageQuality()) + "\nOperation state: " + getOperationState() + "\nImage threshold: " + String(getImageThreshold()) + "\nImage recogonition rate: " + String(getImageRecRate());
+    else
+        return "No MX8650 has been detected. Check the connections or make sure it is working.";
+}
+
 void MX8650::setSleepMode(uint8_t mode)
 {
     writeToSPI(SLEEP_MODE_ADDR, mode);
@@ -192,7 +181,6 @@ uint8_t MX8650::transmitViaSerial(uint8_t addr, uint8_t wBit)
 {
     SPI.begin();
     SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE1));
-    chipSelectState(HIGH);
     delay(10);
     digitalWrite(SCLK, LOW);
     SPI.transfer(addr);
@@ -201,7 +189,6 @@ uint8_t MX8650::transmitViaSerial(uint8_t addr, uint8_t wBit)
     pinMode(SDIO, OUTPUT);
     digitalWrite(SCLK, HIGH);
     SPI.endTransaction();
-    chipSelectState(LOW);
     SPI.end();
     return static_cast<uint8_t>(data);
 }
@@ -210,18 +197,10 @@ void MX8650::writeToSPI(uint8_t addr, uint8_t data)
 {
     SPI.begin();
     SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE1));
-    chipSelectState(HIGH);
     digitalWrite(SCLK, LOW);
     pinMode(SDIO, OUTPUT);
     SPI.transfer(addr);
     SPI.transfer(data);
     SPI.endTransaction();
-    chipSelectState(LOW);
     SPI.end();
-}
-
-void MX8650::chipSelectState(uint8_t state)
-{
-    if (CS > 0)
-        digitalWrite(CS, state);
 }
