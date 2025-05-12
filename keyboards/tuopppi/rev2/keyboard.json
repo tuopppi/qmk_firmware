@@ -1,16 +1,17 @@
 {
     "processor": "RP2040",
+    "board": "GENERIC_RP_RP2040",
     "bootloader": "rp2040",
     "matrix_pins": {
         "direct": [
             [
-                "GP13"
+                "GP29"
             ]
         ]
     },
     "features": {
         "bootmagic": true,
-        "command": false,
+        "command": true,
         "console": true
     },
     "usb": {

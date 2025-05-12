@@ -1,106 +1,215 @@
-#include "mx8650.h"
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h> // Required for sprintf
+#include <string.h> // Required for strcat, strlen
+#include "gpio.h"
+#include "chibios_config.h"
+#include <ch.h>
+#include <hal.h>
+
 #include "mx8650_constants.h"
+#include "mx8650.h"
 
-MX8650::MX8650(uint8_t sclk, uint8_t sdio)
-{
-    SCLK = sclk;
-    SDIO = sdio;
-    setUp();
+// platforms/chibios/drivers/ws2812_bitbang.c
+
+#define NUMBER_NOPS 6
+#define CYCLES_PER_SEC (CPU_CLOCK / NUMBER_NOPS)
+#define NS_PER_SEC (1000000000L) // Note that this has to be SIGNED since we want to be able to check for negative values of derivatives
+#define NS_PER_CYCLE (NS_PER_SEC / CYCLES_PER_SEC)
+#define NS_TO_CYCLES(n) ((n) / NS_PER_CYCLE)
+#define MX8650_T 20 // Width of a bit ~1.8us
+
+#define wait_ns(x)                                  \
+    do {                                            \
+        for (int i = 0; i < NS_TO_CYCLES(x); i++) { \
+            __asm__ volatile("nop\n\t"              \
+                             "nop\n\t"              \
+                             "nop\n\t"              \
+                             "nop\n\t"              \
+                             "nop\n\t"              \
+                             "nop\n\t");            \
+        }                                           \
+    } while (0)
+
+uint8_t readByte(void) {
+    uint8_t data = 0x00;
+
+    for (unsigned char bit = 0; bit < 8; bit++) {
+        gpio_write_pin_low(MX8650_SCLK_PIN);
+        wait_ns(MX8650_T);
+        gpio_write_pin_high(MX8650_SCLK_PIN);
+        data |= (gpio_read_pin(MX8650_SDIO_PIN) << (7 - bit));
+        wait_ns(MX8650_T);
+    }
+
+    return data;
 }
 
-void MX8650::setUp()
-{
-    pinMode(SCLK, OUTPUT);
-    digitalWrite(SCLK, HIGH);
-    pinMode(SDIO, INPUT);
-    digitalWrite(SDIO, LOW);
-
-    writeToSPI(0x80 | SLEEP_MODE_ADDR, SLEEP_MODE_1);
-    writeToSPI(0x80 | DPI_ADDR, DPI_1200);
-    writeToSPI(0x80 | 0x09, 0x5A);
-    writeToSPI(0x80 | IMG_THRES_ADDR, 0x04);
-    writeToSPI(0x80 | IMG_RECG_ADDR, IMG_RATE_HIGH);
-
+void sendByte(uint8_t byte) {
+    for (unsigned char bit = 0; bit < 8; bit++) {
+        bool is_one = byte & (1 << (7 - bit));
+        if (is_one) {
+            // 1
+            gpio_write_pin_low(MX8650_SCLK_PIN);
+            gpio_write_pin_high(MX8650_SDIO_PIN);
+            wait_ns(MX8650_T);
+            gpio_write_pin_high(MX8650_SCLK_PIN);
+            wait_ns(MX8650_T);
+        } else {
+            // 0
+            gpio_write_pin_low(MX8650_SCLK_PIN);
+            gpio_write_pin_low(MX8650_SDIO_PIN);
+            wait_ns(MX8650_T);
+            gpio_write_pin_high(MX8650_SCLK_PIN);
+            wait_ns(MX8650_T);
+        }
+    }
 }
 
-bool MX8650::verify()
+static bool global_deviceFound = false;
+
+uint8_t mx8650_read(uint8_t addr)
 {
-    return transmitViaSerial(0x00, 0x00) == 48;
+    chSysLock(); // disable interrupts
+    sendByte(addr);
+    gpio_set_pin_input(MX8650_SDIO_PIN);
+    chSysUnlock();
+    wait_ns(MX8650_T);
+    wait_ns(MX8650_T);
+    chSysLock();
+    uint8_t data = readByte();
+    gpio_set_pin_output(MX8650_SDIO_PIN);
+    chSysUnlock();
+    return data;
 }
 
-String MX8650::getMotionStatus()
+void mx8650_write(uint8_t addr, uint8_t data)
 {
-    if (transmitViaSerial(MOTION_STATUS_ADDR, 0x00) >= 0x84)
+    chSysLock(); // disable interrupts
+    sendByte(addr);
+    sendByte(data);
+    chSysUnlock();
+}
+
+void mx8650_init(void)
+{
+    gpio_set_pin_output(MX8650_SCLK_PIN);
+    gpio_write_pin_high(MX8650_SCLK_PIN);
+    gpio_set_pin_output(MX8650_SDIO_PIN);
+
+    mx8650_write(0x80 | SLEEP_MODE_ADDR, SLEEP_MODE_1);
+    mx8650_write(0x80 | DPI_ADDR, DPI_1200);
+    mx8650_write(0x80 | 0x09, 0x5A);
+    mx8650_write(0x80 | IMG_THRES_ADDR, 0x04);
+    mx8650_write(0x80 | IMG_RECG_ADDR, IMG_RATE_HIGH);
+}
+
+bool mx8650_verify(void)
+{
+    return mx8650_read(0x00) == 48;
+}
+
+const char* mx8650_getMotionStatus(void)
+{
+    if (mx8650_read(MOTION_STATUS_ADDR) >= 0x84)
         return "IN MOTION";
     else
         return "IDLE";
 }
 
-uint8_t MX8650::getMotionData()
+uint8_t mx8650_getMotionData(void)
 {
-    return transmitViaSerial(MOTION_STATUS_ADDR, 0x00);
+    return mx8650_read(MOTION_STATUS_ADDR);
 }
 
-uint8_t MX8650::getDeltaX()
+uint8_t mx8650_getDeltaX(void)
 {
-    return transmitViaSerial(DELTA_X_ADDR, 0x00);
+    return mx8650_read(DELTA_X_ADDR);
 }
 
-uint8_t MX8650::getDeltaY()
+uint8_t mx8650_getDeltaY(void)
 {
-    return transmitViaSerial(DELTA_Y_ADDR, 0x00);
+    return mx8650_read(DELTA_Y_ADDR);
 }
 
-String MX8650::getPID()
+// Note: C does not have a built-in String class. Using char arrays.
+// The caller is responsible for providing a buffer for the result.
+void mx8650_getPID(char* pid_buffer, size_t buffer_size)
 {
     char temp[4];
-    String pID;
-    itoa(transmitViaSerial(0x00, 0x00), temp, 16);
-    pID = String(temp);
-    itoa(transmitViaSerial(0x01, 0x00), temp, 16);
-    pID += String(temp);
-    pID.toUpperCase();
-    return pID;
+    uint8_t part1 = mx8650_read(0x00);
+    uint8_t part2 = mx8650_read(0x01);
+
+    snprintf(temp, sizeof(temp), "%X", part1);
+    strncpy(pid_buffer, temp, buffer_size - 1);
+    pid_buffer[buffer_size - 1] = '\0'; // Ensure null termination
+
+    snprintf(temp, sizeof(temp), "%X", part2);
+    strncat(pid_buffer, temp, buffer_size - strlen(pid_buffer) - 1);
+
+    // Convert to uppercase (basic implementation)
+    for (int i = 0; pid_buffer[i]; i++) {
+        if (pid_buffer[i] >= 'a' && pid_buffer[i] <= 'z') {
+            pid_buffer[i] = pid_buffer[i] - 32;
+        }
+    }
 }
 
-String MX8650::getOperationalMode()
+// Note: C does not have a built-in String class. Using char arrays.
+// The caller is responsible for providing a buffer for the result.
+void mx8650_getOperationalMode(char* opmode_buffer, size_t buffer_size)
 {
     char temp[4];
-    itoa(transmitViaSerial(SLEEP_MODE_ADDR, 0x00), temp, 16);
-    String opMode;
-    opMode = String(temp);
-    opMode.toUpperCase();
-    return opMode;
+    uint8_t mode = mx8650_read(SLEEP_MODE_ADDR);
+    snprintf(temp, sizeof(temp), "%X", mode);
+    strncpy(opmode_buffer, temp, buffer_size - 1);
+    opmode_buffer[buffer_size - 1] = '\0'; // Ensure null termination
+
+    // Convert to uppercase (basic implementation)
+    for (int i = 0; opmode_buffer[i]; i++) {
+        if (opmode_buffer[i] >= 'a' && opmode_buffer[i] <= 'z') {
+            opmode_buffer[i] = opmode_buffer[i] - 32;
+        }
+    }
 }
 
-uint8_t MX8650::getImageQuality()
+
+uint8_t mx8650_getImageQuality(void)
 {
-    return transmitViaSerial(IMG_QUALITY_ADDR, 0x00);
+    return mx8650_read(IMG_QUALITY_ADDR);
 }
 
-String MX8650::getOperationState()
+// Note: C does not have a built-in String class. Using char arrays.
+// The caller is responsible for providing a buffer for the result.
+void mx8650_getOperationState(char* opstate_buffer, size_t buffer_size)
 {
     char temp[4];
-    itoa(transmitViaSerial(OPERATION_STATE_ADDR, 0x00), temp, 16);
-    String opMode;
-    opMode = String(temp);
-    opMode.toUpperCase();
-    return opMode;
+    uint8_t state = mx8650_read(OPERATION_STATE_ADDR);
+    snprintf(temp, sizeof(temp), "%X", state);
+    strncpy(opstate_buffer, temp, buffer_size - 1);
+    opstate_buffer[buffer_size - 1] = '\0'; // Ensure null termination
+
+    // Convert to uppercase (basic implementation)
+    for (int i = 0; opstate_buffer[i]; i++) {
+        if (opstate_buffer[i] >= 'a' && opstate_buffer[i] <= 'z') {
+            opstate_buffer[i] = opstate_buffer[i] - 32;
+        }
+    }
 }
 
-uint8_t MX8650::getImageRecRate()
+uint8_t mx8650_getImageRecRate(void)
 {
-    return transmitViaSerial(IMG_RECG_ADDR, 0x00);
+    return mx8650_read(IMG_RECG_ADDR);
 }
 
-uint8_t MX8650::getImageThreshold()
+uint8_t mx8650_getImageThreshold(void)
 {
-    return transmitViaSerial(IMG_THRES_ADDR, 0x00);
+    return mx8650_read(IMG_THRES_ADDR);
 }
 
-uint16_t MX8650::getDPI()
+uint16_t mx8650_getDPI(void)
 {
-    uint8_t dpi = transmitViaSerial(DPI_ADDR, 0x00);
+    uint8_t dpi = mx8650_read(DPI_ADDR);
 
     switch (dpi)
     {
@@ -117,90 +226,81 @@ uint16_t MX8650::getDPI()
     }
 }
 
-void MX8650::Log()
+// Note: C does not have a built-in String class. Using char arrays.
+// The caller is responsible for providing a buffer for the result.
+void mx8650_getLog(char* log_buffer, size_t buffer_size)
 {
-    Serial.println(getLog());
-    Serial.println();
+    global_deviceFound = mx8650_verify();
+
+    if (global_deviceFound == true) {
+        char pid_str[10]; // Adjust size as needed
+        char opmode_str[10]; // Adjust size as needed
+        char opstate_str[10]; // Adjust size as needed
+
+        mx8650_getPID(pid_str, sizeof(pid_str));
+        mx8650_getOperationalMode(opmode_str, sizeof(opmode_str));
+        mx8650_getOperationState(opstate_str, sizeof(opstate_str));
+
+        snprintf(log_buffer, buffer_size,
+                 "Product ID: 0x%s\nOperational mode: 0x%s\nDPI: %u\nMotion status: %s\nMotion data: %u\nDelta X: %u\tDelta Y: %u\nImage quality: %u\nOperation state: %s\nImage threshold: %u\nImage recogonition rate: %u",
+                 pid_str, opmode_str, mx8650_getDPI(), mx8650_getMotionStatus(),
+                 mx8650_getMotionData(), mx8650_getDeltaX(), mx8650_getDeltaY(),
+                 mx8650_getImageQuality(), opstate_str, mx8650_getImageThreshold(),
+                 mx8650_getImageRecRate());
+    } else {
+        strncpy(log_buffer, "No MX8650 has been detected. Check the connections or make sure it is working.", buffer_size - 1);
+        log_buffer[buffer_size - 1] = '\0'; // Ensure null termination
+    }
 }
 
-String MX8650::getLog()
+void mx8650_Log(void)
 {
-    deviceFound = verify();
-    if (deviceFound == true)
-        return "Product ID: 0x" + getPID() + "\nOperational mode: 0x" + getOperationalMode() + "\nDPI: " + String(getDPI()) + "\nMotion status: " + getMotionStatus() + "\nMotion data: " + String(getMotionData()) + "\nDelta X: " + String(getDeltaX()) + "\tDelta Y: " + String(getDeltaY()) + "\nImage quality: " + String(getImageQuality()) + "\nOperation state: " + getOperationState() + "\nImage threshold: " + String(getImageThreshold()) + "\nImage recogonition rate: " + String(getImageRecRate());
-    else
-        return "No MX8650 has been detected. Check the connections or make sure it is working.";
+    char log_buffer[256]; // Adjust buffer size as needed
+    mx8650_getLog(log_buffer, sizeof(log_buffer));
+    printf("%s\n", log_buffer);
 }
 
-void MX8650::setSleepMode(uint8_t mode)
+void mx8650_setSleepMode(uint8_t mode)
 {
-    writeToSPI(SLEEP_MODE_ADDR, mode);
+    mx8650_write(SLEEP_MODE_ADDR, mode);
 }
 
-void MX8650::setDPI(uint8_t dpi)
+void mx8650_setDPI(uint8_t dpi)
 {
-    writeToSPI(DPI_ADDR, dpi);
+    mx8650_write(DPI_ADDR, dpi);
 }
 
-void MX8650::setImageQuality(uint8_t quality)
+void mx8650_setImageQuality(uint8_t quality)
 {
-    writeToSPI(IMG_QUALITY_ADDR, quality);
+    mx8650_write(IMG_QUALITY_ADDR, quality);
 }
 
-void MX8650::setOperationState(uint8_t state)
+void mx8650_setOperationState(uint8_t state)
 {
-    writeToSPI(OPERATION_STATE_ADDR, state);
+    mx8650_write(OPERATION_STATE_ADDR, state);
 }
 
-void MX8650::setSleepSetting_1(uint8_t frequency)
+void mx8650_setSleepSetting_1(uint8_t frequency)
 {
-    writeToSPI(SLEEP1_FREQ_ADDR, frequency);
+    mx8650_write(SLEEP1_FREQ_ADDR, frequency);
 }
 
-void MX8650::setSleepSetting_2(uint8_t frequency)
+void mx8650_setSleepSetting_2(uint8_t frequency)
 {
-    writeToSPI(SLEEP2_FREQ_ADDR, frequency);
+    mx8650_write(SLEEP2_FREQ_ADDR, frequency);
 }
 
-void MX8650::setSleepEnterTime(uint8_t mode)
+void mx8650_setSleepEnterTime(uint8_t mode)
 {
-    writeToSPI(SLEEP_ENTER_TIME_ADDR, mode);
+    mx8650_write(SLEEP_ENTER_TIME_ADDR, mode);
 }
 
-void MX8650::setImageThreshold(uint8_t threshold)
+void mx8650_setImageThreshold(uint8_t threshold)
 {
-    writeToSPI(IMG_THRES_ADDR, threshold);
+    mx8650_write(IMG_THRES_ADDR, threshold);
 }
 
-void MX8650::setImageRecRate(uint8_t rate)
+void mx8650_setImageRecRate(uint8_t rate)
 {
-    writeToSPI(IMG_RECG_ADDR, rate);
-}
-
-uint8_t MX8650::transmitViaSerial(uint8_t addr, uint8_t wBit)
-{
-    SPI.begin();
-    SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE1));
-    delay(10);
-    digitalWrite(SCLK, LOW);
-    SPI.transfer(addr);
-    pinMode(SDIO, INPUT);
-    byte data = SPI.transfer(wBit);
-    pinMode(SDIO, OUTPUT);
-    digitalWrite(SCLK, HIGH);
-    SPI.endTransaction();
-    SPI.end();
-    return static_cast<uint8_t>(data);
-}
-
-void MX8650::writeToSPI(uint8_t addr, uint8_t data)
-{
-    SPI.begin();
-    SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE1));
-    digitalWrite(SCLK, LOW);
-    pinMode(SDIO, OUTPUT);
-    SPI.transfer(addr);
-    SPI.transfer(data);
-    SPI.endTransaction();
-    SPI.end();
+    mx8650_write(IMG_RECG_ADDR, rate);
 }
