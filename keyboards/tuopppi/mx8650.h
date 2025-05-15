@@ -36,13 +36,13 @@ uint8_t mx8650_getMotionData(void);
  * @brief Gets the change in motion data on X axis.
  * @returns The value of change in motion data on X axis.
  */
-uint8_t mx8650_getDeltaX(void);
+int8_t mx8650_getDeltaX(void);
 
 /**
  * @brief Gets the change in motion data on Y axis.
  * @returns The value of change in motion data on Y axis.
  */
-uint8_t mx8650_getDeltaY(void);
+int8_t mx8650_getDeltaY(void);
 
 /**
  * @brief Gets the Product ID of the controller.
@@ -98,10 +98,10 @@ uint16_t mx8650_getDPI(void);
 void mx8650_setSleepMode(uint8_t mode);
 
 /**
- * @brief Sets the DPI. You may use the built-in DPI constants or refer the datasheet.
+ * @brief Sets the DPI.
  * @param state The DPI to set.
  */
-void mx8650_setDPI(uint8_t state);
+void mx8650_setDPI(uint16_t dpi);
 
 /**
  * @brief Sets the Image quality. You may refer the datasheet before setting the image quality.

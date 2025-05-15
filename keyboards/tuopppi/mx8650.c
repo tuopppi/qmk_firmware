@@ -97,8 +97,8 @@ void mx8650_init(void)
     gpio_write_pin_high(MX8650_SCLK_PIN);
     gpio_set_pin_output(MX8650_SDIO_PIN);
 
-    mx8650_write(0x80 | SLEEP_MODE_ADDR, SLEEP_MODE_1);
-    mx8650_write(0x80 | DPI_ADDR, DPI_1200);
+    mx8650_write(0x80 | SLEEP_MODE_ADDR, DISABLE_SLEEP);
+    mx8650_write(0x80 | DPI_ADDR, DPI_1600);
     mx8650_write(0x80 | 0x09, 0x5A);
     mx8650_write(0x80 | IMG_THRES_ADDR, 0x04);
     mx8650_write(0x80 | IMG_RECG_ADDR, IMG_RATE_HIGH);
@@ -122,12 +122,12 @@ uint8_t mx8650_getMotionData(void)
     return mx8650_read(MOTION_STATUS_ADDR);
 }
 
-uint8_t mx8650_getDeltaX(void)
+int8_t mx8650_getDeltaX(void)
 {
     return mx8650_read(DELTA_X_ADDR);
 }
 
-uint8_t mx8650_getDeltaY(void)
+int8_t mx8650_getDeltaY(void)
 {
     return mx8650_read(DELTA_Y_ADDR);
 }
@@ -265,9 +265,21 @@ void mx8650_setSleepMode(uint8_t mode)
     mx8650_write(SLEEP_MODE_ADDR, mode);
 }
 
-void mx8650_setDPI(uint8_t dpi)
+void mx8650_setDPI(uint16_t dpi)
 {
-    mx8650_write(DPI_ADDR, dpi);
+    switch (dpi)
+    {
+    case 100:
+        return mx8650_write(DPI_ADDR, DPI_100);
+    case 800:
+        return mx8650_setDPI(DPI_800);
+    case 1200:
+        return mx8650_setDPI(DPI_1200);
+    case 1600:
+    default:
+        return mx8650_setDPI(DPI_1600);
+    }
+    
 }
 
 void mx8650_setImageQuality(uint8_t quality)
