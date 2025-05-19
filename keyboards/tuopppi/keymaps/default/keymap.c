@@ -7,9 +7,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-   mx8650_Log();
+  if (record->event.pressed) {
+    mx8650_Log();
+  }
 
-   return true;
+  return true;
 }
 
 void pointing_device_driver_init(void) {
@@ -18,18 +20,22 @@ void pointing_device_driver_init(void) {
 
 report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report) {
   uint8_t data = mx8650_getMotionData();
+
   if (data >= 0x84) {
     int8_t y = mx8650_getDeltaY();
     int8_t x = mx8650_getDeltaX();
 
     if (layer_state_is(1)) {
-      mouse_report.h = x > 0 ? 1 : (x < 1 ? -1 : 0);
-      mouse_report.v = y > 0 ? -1 : (y < 1 ? 1 : 0);
+      mouse_report.h = x;
+      mouse_report.v = y;
     } else {
       mouse_report.x = x;
       mouse_report.y = y;
     }
+
+    printf("dX: %d dY: %d\n", x, y);
   }
+
   return mouse_report;
 }
 

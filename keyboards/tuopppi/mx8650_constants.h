@@ -13,7 +13,7 @@
 // DPI
 #define DPI_ADDR 0x06
 #define DPI_800 0x04
-#define DPI_100 0x05
+#define DPI_1000 0x05
 #define DPI_1200 0x06
 #define DPI_1600 0x07
 
