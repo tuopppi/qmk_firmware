@@ -1,6 +1,11 @@
 #ifndef MX8650_constants
 #define MX8650_constants
 
+// Write Protect
+#define WRITE_PROTECT_ADDR 0x09
+#define WRITE_PROTECT_ENABLE 0x00
+#define WRITE_PROTECT_DISABLE 0x5A
+
 // Operational Modes
 #define SLEEP_MODE_ADDR 0x05
 #define DISABLE_SLEEP 0xA0
