@@ -35,6 +35,7 @@ const uint32_t PROGMEM unicode_map[] = {
 
 #define KC_QUIT (QK_LCTL | QK_LGUI | KC_Q)
 #define KC_SHORTCAT MEH(KC_SPACE)
+#define KC_MISSION_CTRL MEH(KC_M)
 #define KC_OE  UP(oe, OE)
 #define KC_AE  UP(ae, AE)
 #define KC_SCREENSHOT LSG(KC_4)
@@ -63,7 +64,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   [NUM] = LAYOUT(
   //+--------------------------------------------+                    +---------------------------------------------+
-      KC_NO,   KC_F1,   KC_UP,   KC_F2,   KC_NO,                        KC_NO,   KC_7,    KC_8,    KC_9,    KC_NO,
+      KC_MISSION_CTRL,KC_F1,KC_UP,KC_F2,   KC_NO,                        KC_NO,   KC_7,    KC_8,    KC_9,    KC_NO,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
       KC_HOME, KC_LEFT, KC_DOWN, KC_RIGHT, KC_END,                      KC_NO,   KC_4,    KC_5,    KC_6,    KC_NO,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
@@ -75,9 +76,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //+--------------------------------------------+                    +---------------------------------------------+
       KC_NO,   KC_NO,   KC_NO,   KC_SCREENCAP, KC_SCREENSHOT,           MS_BTN3, MS_BTN1, MS_UP  , MS_BTN2, KC_NO,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
-      KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,                        KC_NO,   MS_LEFT, MS_DOWN, MS_RGHT, KC_NO,
+      KC_NO,   KC_NO, KC_NO, KC_NO, KC_NO,                        KC_NO,   MS_LEFT, MS_DOWN, MS_RGHT, KC_NO,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
-      KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,                        KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO, 
+      KC_NO,   KC_NO, KC_NO, KC_NO, KC_NO,                        KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO, 
   //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
       KC_QUIT,                   KC_NO,   KC_NO,  KC_NO,       KC_NO,   KC_NO,   KC_NO,                     QK_BOOT
   )
@@ -89,10 +90,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 const uint16_t PROGMEM combo_enter[] = {KC_E, KC_L, COMBO_END};
 const uint16_t PROGMEM combo_tab[] = {KC_COMMA, KC_DOT, COMBO_END};
 const uint16_t PROGMEM combo_layer_mouse[] = {OSL(SYM), KC_SPACE, COMBO_END};
+const uint16_t PROGMEM combo_ms_btn1[] = {KC_C, KC_F, COMBO_END};
+const uint16_t PROGMEM combo_ms_btn2[] = {KC_X, KC_C, COMBO_END};
 combo_t key_combos[] = {
     COMBO(combo_enter, KC_ENTER),
     COMBO(combo_tab, KC_TAB),
     COMBO(combo_layer_mouse , MO(MOUSE)),
+    COMBO(combo_ms_btn1, MS_BTN1),
+    COMBO(combo_ms_btn2, MS_BTN2),
 };
 
 // KEY OVERRIDES
@@ -123,7 +128,19 @@ const key_override_t *key_overrides[] = {
     &f9_key_override,
 };
 
+bool set_scrolling = false;
+
+// Modify these values to adjust the scrolling speed
+#define SCROLL_DIVISOR_H 32.0
+#define SCROLL_DIVISOR_V 32.0
+
+// Variables to store accumulated scroll values
+float scroll_accumulated_h = 0;
+float scroll_accumulated_v = 0;
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    set_scrolling = record->event.pressed && keycode != MS_BTN1 && keycode != MS_BTN2 && keycode != MS_BTN3;
+
     // if (record->event.pressed) { mx8650_Log(); }
 
     if (!process_smtd(keycode, record)) {
@@ -131,6 +148,41 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     return true; // Process all other keycodes normally
+}
+
+report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report) {
+  uint8_t data = mx8650_getMotionData();
+
+  if (data >= 0x84) {
+    int8_t y = mx8650_getDeltaY();
+    int8_t x = mx8650_getDeltaX();
+
+    // Check if drag scrolling is active
+    if (set_scrolling) {
+        // Calculate and accumulate scroll values based on mouse movement and divisors
+        scroll_accumulated_h += (float)x / SCROLL_DIVISOR_H;
+        scroll_accumulated_v += (float)y / SCROLL_DIVISOR_V;
+
+        // Assign integer parts of accumulated scroll values to the mouse report
+        mouse_report.h = (int8_t)scroll_accumulated_h;
+        mouse_report.v = -(int8_t)scroll_accumulated_v;
+
+        printf("dX: %d dY: %d h: %d v: %d\n", x, y, mouse_report.h, mouse_report.v);
+
+        // Update accumulated scroll values by subtracting the integer parts
+        scroll_accumulated_h -= (int8_t)scroll_accumulated_h;
+        scroll_accumulated_v -= (int8_t)scroll_accumulated_v;
+
+        // Clear the X and Y values of the mouse report
+        mouse_report.x = 0;
+        mouse_report.y = 0;
+    } else {
+        mouse_report.x = x;
+        mouse_report.y = y;
+    }
+  }
+
+  return mouse_report;
 }
 
 // https://github.com/stasmarkin/sm_td/blob/main/docs/070_customization_timeouts.md
@@ -180,31 +232,6 @@ smtd_resolution on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap
 
 void pointing_device_driver_init(void) {
   mx8650_init();
-}
-
-report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report) {
-  uint8_t data = mx8650_getMotionData();
-
-  if (data >= 0x84) {
-    int8_t y = mx8650_getDeltaY();
-    int8_t x = mx8650_getDeltaX();
-
-    /*
-    if (layer_state_is(1)) {
-      mouse_report.h = x;
-      mouse_report.v = y;
-    } else {
-      mouse_report.x = x;
-      mouse_report.y = y;
-    }
-    printf("dX: %d dY: %d\n", x, y);
-    */
-
-    mouse_report.x = x;
-    mouse_report.y = y;
-  }
-
-  return mouse_report;
 }
 
 uint16_t pointing_device_driver_get_cpi(void) {
