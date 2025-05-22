@@ -129,60 +129,41 @@ const key_override_t *key_overrides[] = {
 };
 
 bool set_scrolling = false;
-
-// Modify these values to adjust the scrolling speed
-#define SCROLL_DIVISOR_H 32.0
-#define SCROLL_DIVISOR_V 32.0
-
-// Variables to store accumulated scroll values
 float scroll_accumulated_h = 0;
 float scroll_accumulated_v = 0;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     set_scrolling = record->event.pressed && keycode != MS_BTN1 && keycode != MS_BTN2 && keycode != MS_BTN3;
 
-    // if (record->event.pressed) { mx8650_Log(); }
-
     if (!process_smtd(keycode, record)) {
         return false;
+    }
+
+    if (record->event.pressed) {
+        mx8650_Log();
     }
 
     return true; // Process all other keycodes normally
 }
 
-report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report) {
-  uint8_t data = mx8650_getMotionData();
-
-  if (data >= 0x84) {
-    int8_t y = mx8650_getDeltaY();
-    int8_t x = mx8650_getDeltaX();
-
-    // Check if drag scrolling is active
+report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     if (set_scrolling) {
         // Calculate and accumulate scroll values based on mouse movement and divisors
-        scroll_accumulated_h += (float)x / SCROLL_DIVISOR_H;
-        scroll_accumulated_v += (float)y / SCROLL_DIVISOR_V;
+        scroll_accumulated_h += (float)mouse_report.x / 32.0;
+        scroll_accumulated_v += (float)mouse_report.y / 32.0;
 
         // Assign integer parts of accumulated scroll values to the mouse report
         mouse_report.h = (int8_t)scroll_accumulated_h;
         mouse_report.v = -(int8_t)scroll_accumulated_v;
 
-        printf("dX: %d dY: %d h: %d v: %d\n", x, y, mouse_report.h, mouse_report.v);
-
         // Update accumulated scroll values by subtracting the integer parts
         scroll_accumulated_h -= (int8_t)scroll_accumulated_h;
         scroll_accumulated_v -= (int8_t)scroll_accumulated_v;
 
-        // Clear the X and Y values of the mouse report
         mouse_report.x = 0;
         mouse_report.y = 0;
-    } else {
-        mouse_report.x = x;
-        mouse_report.y = y;
     }
-  }
-
-  return mouse_report;
+    return mouse_report;
 }
 
 // https://github.com/stasmarkin/sm_td/blob/main/docs/070_customization_timeouts.md
@@ -230,14 +211,3 @@ smtd_resolution on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap
     return SMTD_RESOLUTION_UNHANDLED;
 }
 
-void pointing_device_driver_init(void) {
-  mx8650_init();
-}
-
-uint16_t pointing_device_driver_get_cpi(void) {
-  return mx8650_getDPI();
-}
-
-void pointing_device_driver_set_cpi(uint16_t cpi) {
-  mx8650_setDPI(cpi);
-}

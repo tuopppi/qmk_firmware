@@ -1,50 +1,48 @@
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdio.h> // Required for sprintf
-#include <string.h> // Required for strcat, strlen
+#include <stdio.h>
+#include <string.h>
 #include "gpio.h"
 #include "chibios_config.h"
 #include <ch.h>
 #include <hal.h>
 #include "wait.h"
 
-
-#include "mx8650_constants.h"
 #include "mx8650.h"
+#include "mx8650_constants.h"
+#include "report.h"
 
-// platforms/chibios/drivers/ws2812_bitbang.c
-
-uint8_t readByte(void) {
+uint8_t readByte(void)
+{
     uint8_t data = 0x00;
 
     for (unsigned char bit = 0; bit < 8; bit++) {
         gpio_write_pin_low(MX8650_SCLK_PIN);
-        wait_us(2);
+        wait_us(1);
         gpio_write_pin_high(MX8650_SCLK_PIN);
         data |= (gpio_read_pin(MX8650_SDIO_PIN) << (7 - bit));
-        wait_us(2);
+        wait_us(3);
     }
 
     return data;
 }
 
-void sendByte(uint8_t byte) {
+void sendByte(uint8_t byte)
+{
     for (unsigned char bit = 0; bit < 8; bit++) {
         bool is_one = byte & (1 << (7 - bit));
         if (is_one) {
-            // 1
             gpio_write_pin_low(MX8650_SCLK_PIN);
             gpio_write_pin_high(MX8650_SDIO_PIN);
-            wait_us(2);
+            wait_us(1);
             gpio_write_pin_high(MX8650_SCLK_PIN);
-            wait_us(2);
+            wait_us(3);
         } else {
-            // 0
             gpio_write_pin_low(MX8650_SCLK_PIN);
             gpio_write_pin_low(MX8650_SDIO_PIN);
-            wait_us(2);
+            wait_us(1);
             gpio_write_pin_high(MX8650_SCLK_PIN);
-            wait_us(2);
+            wait_us(3);
         }
     }
 }
@@ -55,7 +53,7 @@ uint8_t mx8650_read(uint8_t addr)
     sendByte(addr);
     gpio_set_pin_input(MX8650_SDIO_PIN);
     chSysUnlock();
-    wait_us(5);
+    wait_us(100);
     chSysLock();
     uint8_t data = readByte();
     gpio_set_pin_output(MX8650_SDIO_PIN);
@@ -66,7 +64,7 @@ uint8_t mx8650_read(uint8_t addr)
 void mx8650_write(uint8_t addr, uint8_t data)
 {
     chSysLock(); // disable interrupts
-    sendByte(0x80 | addr);
+    sendByte(0x80 | addr); // set write bit
     sendByte(data);
     chSysUnlock();
 }
@@ -76,12 +74,6 @@ void mx8650_init(void)
     gpio_set_pin_output(MX8650_SCLK_PIN);
     gpio_write_pin_high(MX8650_SCLK_PIN);
     gpio_set_pin_output(MX8650_SDIO_PIN);
-
-    mx8650_write(SLEEP_MODE_ADDR, SLEEP_MODE_1);
-    mx8650_write(DPI_ADDR, DPI_800);
-    mx8650_write(0x09, 0x5A);
-    mx8650_write(IMG_THRES_ADDR, 0x04);
-    mx8650_write(IMG_RECG_ADDR, IMG_RATE_HIGH);
 }
 
 bool mx8650_verify(void)
@@ -89,82 +81,192 @@ bool mx8650_verify(void)
     return mx8650_read(0x00) == 48;
 }
 
-const char* mx8650_getMotionStatus(void)
-{
-    if (mx8650_read(MOTION_STATUS_ADDR) >= 0x84)
-        return "IN MOTION";
-    else
-        return "IDLE";
-}
-
+/**
+ * @brief Gets the Motion data from the controller.
+ * @returns The value of Motion data.
+ */
 uint8_t mx8650_getMotionData(void)
 {
     return mx8650_read(MOTION_STATUS_ADDR);
 }
 
+/**
+ * @brief Gets the change in motion data on X axis.
+ * @returns The value of change in motion data on X axis.
+ */
 int8_t mx8650_getDeltaX(void)
 {
     return mx8650_read(DELTA_X_ADDR);
 }
 
+/**
+ * @brief Gets the change in motion data on Y axis.
+ * @returns The value of change in motion data on Y axis.
+ */
 int8_t mx8650_getDeltaY(void)
 {
     return mx8650_read(DELTA_Y_ADDR);
 }
 
-void mx8650_getOperationalMode(char* opmode_buffer, size_t buffer_size)
+/**
+ * @brief Gets the Operational mode of the controller.
+ * @returns The Operational mode of the controller.
+ */
+uint8_t mx8650_getOperationalMode(void)
 {
-    char temp[4];
-    uint8_t mode = mx8650_read(SLEEP_MODE_ADDR);
-    snprintf(temp, sizeof(temp), "%X", mode);
-    strncpy(opmode_buffer, temp, buffer_size - 1);
-    opmode_buffer[buffer_size - 1] = '\0'; // Ensure null termination
-
-    // Convert to uppercase (basic implementation)
-    for (int i = 0; opmode_buffer[i]; i++) {
-        if (opmode_buffer[i] >= 'a' && opmode_buffer[i] <= 'z') {
-            opmode_buffer[i] = opmode_buffer[i] - 32;
-        }
-    }
+    return mx8650_read(SLEEP_MODE_ADDR);
 }
 
-
+/**
+ * @brief Gets the Image quality being used by the sensor array.
+ * @returns The Image quality being used.
+ */
 uint8_t mx8650_getImageQuality(void)
 {
     return mx8650_read(IMG_QUALITY_ADDR);
 }
 
-// Note: C does not have a built-in String class. Using char arrays.
-// The caller is responsible for providing a buffer for the result.
-void mx8650_getOperationState(char* opstate_buffer, size_t buffer_size)
+/**
+ * @brief Gets the Operation state being used.
+ * @param opstate_buffer Buffer to store the Operation state as a Hexadecimal String.
+ * @param buffer_size Size of the opstate_buffer.
+ * @returns The Operation state.
+ */
+uint8_t mx8650_getOperationState(void)
 {
-    char temp[4];
-    uint8_t state = mx8650_read(OPERATION_STATE_ADDR);
-    snprintf(temp, sizeof(temp), "%X", state);
-    strncpy(opstate_buffer, temp, buffer_size - 1);
-    opstate_buffer[buffer_size - 1] = '\0'; // Ensure null termination
-
-    // Convert to uppercase (basic implementation)
-    for (int i = 0; opstate_buffer[i]; i++) {
-        if (opstate_buffer[i] >= 'a' && opstate_buffer[i] <= 'z') {
-            opstate_buffer[i] = opstate_buffer[i] - 32;
-        }
-    }
+    return mx8650_read(OPERATION_STATE_ADDR);
 }
 
+/**
+ * @brief Gets the rate of Image recogonition by the controller.
+ * @returns The Image recogonition rate of the controller.
+ */
 uint8_t mx8650_getImageRecRate(void)
 {
     return mx8650_read(IMG_RECG_ADDR);
 }
 
+/**
+ * @brief Gets the Image threshold used by the Motion Estimation Engine.
+ * @returns The Image threshold being used by MEE.
+ */
 uint8_t mx8650_getImageThreshold(void)
 {
     return mx8650_read(IMG_THRES_ADDR);
 }
 
-uint16_t mx8650_getDPI(void)
+/**
+ * @brief Gets the DPI (Sensitivity) being used by the Motion Estimation Engine.
+ * @returns The DPI being used by MEE.
+ */
+uint8_t mx8650_getDPI(void)
 {
-    uint8_t dpi = mx8650_read(DPI_ADDR);
+    return mx8650_read(DPI_ADDR);
+}
+
+/**
+ * @brief Sets the Sleep mode. You may use the built-in sleep constants or refer the datasheet.
+ * @param mode The Sleep mode to be changed to.
+ */
+void mx8650_setSleepMode(uint8_t mode)
+{
+    mx8650_write(SLEEP_MODE_ADDR, mode);
+}
+
+/**
+ * @brief Sets the DPI.
+ * @param state The DPI to set.
+ */
+void mx8650_setDPI(uint8_t dpi)
+{
+    mx8650_write(DPI_ADDR, dpi);
+}
+
+/**
+ * @brief Sets the Image quality. You may refer the datasheet before setting the image quality.
+ * @param quality The Image quality to set.
+ */
+void mx8650_setImageQuality(uint8_t quality)
+{
+    mx8650_write(IMG_QUALITY_ADDR, quality);
+}
+
+/**
+ * @brief Sets the Operation state. You may refer the datasheet before setting the Operation state.
+ * @param state The Operation state to set.
+ */
+void mx8650_setOperationState(uint8_t state)
+{
+    mx8650_write(OPERATION_STATE_ADDR, state);
+}
+
+/**
+ * @brief Sets the frequency of Sleep mode 1. You may use the built-in Sleep frequency constants or refer the datasheet before setting.
+ * @param frequency The Sleep frequency to set.
+ */
+void mx8650_setSleepSetting_1(uint8_t frequency)
+{
+    mx8650_write(SLEEP1_FREQ_ADDR, frequency);
+}
+
+/**
+ * @brief Sets the frequency of Sleep mode 2. You may use the built-in Sleep frequency constants or refer the datasheet before setting.
+ * @param freqency The Sleep frequency to set.
+ */
+void mx8650_setSleepSetting_2(uint8_t frequency)
+{
+    mx8650_write(SLEEP2_FREQ_ADDR, frequency);
+}
+
+/**
+ * @brief Sets the time to enter both sleep modes seperately. You may  refer the datasheet before setting.
+ * @param mode The time to enter sleep modes.
+ */
+void mx8650_setSleepEnterTime(uint8_t mode)
+{
+    mx8650_write(SLEEP_ENTER_TIME_ADDR, mode);
+}
+
+/**
+ * @brief Sets the Image threshold value. You may refer the datasheet before setting.
+ * @param threshold The threshold to be used by the Motion Estimation Engine.
+ */
+void mx8650_setImageThreshold(uint8_t threshold)
+{
+    mx8650_write(IMG_THRES_ADDR, threshold);
+}
+
+/**
+ * @brief Sets the Image recogonition rate. You may use the built-in Image recogonition rate constants or refer the datasheet before setting.
+ * @param rate The rate to be used by the Motion Estimation Engine.
+ */
+void mx8650_setImageRecRate(uint8_t rate)
+{
+    mx8650_write(IMG_RECG_ADDR, rate);
+}
+
+// QMK
+
+report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report)
+{
+  uint8_t data = mx8650_getMotionData();
+
+  if (data >= 0x84) {
+    mouse_report.x = mx8650_getDeltaX();
+    mouse_report.y = mx8650_getDeltaY();
+  }
+
+  return mouse_report;
+}
+
+void pointing_device_driver_init(void)
+{
+  mx8650_init();
+}
+
+uint16_t pointing_device_driver_get_cpi(void)
+{
+    uint8_t dpi = mx8650_getDPI();
 
     switch (dpi)
     {
@@ -181,89 +283,47 @@ uint16_t mx8650_getDPI(void)
     }
 }
 
-// Note: C does not have a built-in String class. Using char arrays.
-// The caller is responsible for providing a buffer for the result.
-void mx8650_getLog(char* log_buffer, size_t buffer_size)
+void pointing_device_driver_set_cpi(uint16_t cpi)
 {
-    if (mx8650_verify()) {
-        char opmode_str[10]; // Adjust size as needed
-        char opstate_str[10]; // Adjust size as needed
-
-        mx8650_getOperationalMode(opmode_str, sizeof(opmode_str));
-        mx8650_getOperationState(opstate_str, sizeof(opstate_str));
-
-        snprintf(log_buffer, buffer_size,
-                 "Operational mode: 0x%s\nDPI: %u\nMotion status: %s\nMotion data: %u\nDelta X: %d\tDelta Y: %d\nImage quality: %u\nOperation state: %s\nImage threshold: %u\nImage recogonition rate: %u",
-                 opmode_str, mx8650_getDPI(), mx8650_getMotionStatus(),
-                 mx8650_getMotionData(), mx8650_getDeltaX(), mx8650_getDeltaY(),
-                 mx8650_getImageQuality(), opstate_str, mx8650_getImageThreshold(),
-                 mx8650_getImageRecRate());
-    } else {
-        strncpy(log_buffer, "No MX8650 has been detected. Check the connections or make sure it is working.", buffer_size - 1);
-        log_buffer[buffer_size - 1] = '\0'; // Ensure null termination
+    switch (cpi)
+    {
+    case 1600:
+        return mx8650_setDPI(DPI_1600);
+    case 1200:
+        return mx8650_setDPI(DPI_1200);
+    case 1000:
+        return mx8650_setDPI(DPI_1000);
+    default:
+    case 800:
+        return mx8650_setDPI(DPI_800);
     }
 }
 
+void keyboard_post_init_kb(void) {
+    wait_ms(45); // Power up time
+    mx8650_write(WRITE_PROTECT_ADDR, WRITE_PROTECT_DISABLE);
+    mx8650_setDPI(DPI_1200);
+    mx8650_setSleepMode(DISABLE_SLEEP);
+    mx8650_setImageRecRate(IMG_RATE_HIGHEST);
+}
+
+/**
+ * @brief Prints the log output from the controller on the Serial monitor.
+ */
 void mx8650_Log(void)
 {
-    char log_buffer[256]; // Adjust buffer size as needed
-    mx8650_getLog(log_buffer, sizeof(log_buffer));
-    printf("%s\n\n", log_buffer);
-}
-
-void mx8650_setSleepMode(uint8_t mode)
-{
-    mx8650_write(SLEEP_MODE_ADDR, mode);
-}
-
-void mx8650_setDPI(uint16_t dpi)
-{
-    switch (dpi)
-    {
-    case 800:
-        return mx8650_write(DPI_ADDR, DPI_800);
-    case 1000:
-        return mx8650_write(DPI_ADDR, DPI_1000);
-    case 1200:
-        return mx8650_write(DPI_ADDR, DPI_1200);
-    case 1600:
-    default:
-        return mx8650_write(DPI_ADDR, DPI_1600);
+    if (mx8650_verify()) {
+        printf(
+            "Operational mode: 0x%X\nDPI: %u\nMotion status: %s\nImage quality: %u\nOperation state: 0x%X\nImage threshold: %u\nImage recogonition rate: 0x%X\n\n",
+            mx8650_getOperationalMode(),
+            pointing_device_driver_get_cpi(),
+            mx8650_getMotionData() >= 0x84 ? "IN MOTION" : "IDLE",
+            mx8650_getImageQuality(),
+            mx8650_getOperationState(),
+            mx8650_getImageThreshold(),
+            mx8650_getImageRecRate()
+        );
+    } else {
+        printf("No MX8650 has been detected. Check the connections or make sure it is working.");
     }
-    
-}
-
-void mx8650_setImageQuality(uint8_t quality)
-{
-    mx8650_write(IMG_QUALITY_ADDR, quality);
-}
-
-void mx8650_setOperationState(uint8_t state)
-{
-    mx8650_write(OPERATION_STATE_ADDR, state);
-}
-
-void mx8650_setSleepSetting_1(uint8_t frequency)
-{
-    mx8650_write(SLEEP1_FREQ_ADDR, frequency);
-}
-
-void mx8650_setSleepSetting_2(uint8_t frequency)
-{
-    mx8650_write(SLEEP2_FREQ_ADDR, frequency);
-}
-
-void mx8650_setSleepEnterTime(uint8_t mode)
-{
-    mx8650_write(SLEEP_ENTER_TIME_ADDR, mode);
-}
-
-void mx8650_setImageThreshold(uint8_t threshold)
-{
-    mx8650_write(IMG_THRES_ADDR, threshold);
-}
-
-void mx8650_setImageRecRate(uint8_t rate)
-{
-    mx8650_write(IMG_RECG_ADDR, rate);
 }
