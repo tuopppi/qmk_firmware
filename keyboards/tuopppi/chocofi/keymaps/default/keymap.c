@@ -139,9 +139,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         return false;
     }
 
-    if (record->event.pressed) {
-        mx8650_Log();
-    }
+    // if (record->event.pressed) { mx8650_Log(); }
 
     return true; // Process all other keycodes normally
 }
@@ -149,8 +147,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     if (set_scrolling) {
         // Calculate and accumulate scroll values based on mouse movement and divisors
-        scroll_accumulated_h += (float)mouse_report.x / 32.0;
-        scroll_accumulated_v += (float)mouse_report.y / 32.0;
+        scroll_accumulated_h += (float)mouse_report.x / 48.0f;
+        scroll_accumulated_v += (float)mouse_report.y / 48.0f;
 
         // Assign integer parts of accumulated scroll values to the mouse report
         mouse_report.h = (int8_t)scroll_accumulated_h;
@@ -163,6 +161,7 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
         mouse_report.x = 0;
         mouse_report.y = 0;
     }
+
     return mouse_report;
 }
 
