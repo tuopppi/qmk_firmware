@@ -254,6 +254,7 @@ report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report)
   if (data >= 0x84) {
     mouse_report.x = mx8650_getDeltaX();
     mouse_report.y = mx8650_getDeltaY();
+    // printf("%d %d\n", mouse_report.x, mouse_report.y);
   }
 
   return mouse_report;
@@ -304,7 +305,7 @@ void keyboard_post_init_kb(void) {
     mx8650_write(WRITE_PROTECT_ADDR, WRITE_PROTECT_DISABLE);
     mx8650_setDPI(DPI_1200);
     mx8650_setSleepMode(DISABLE_SLEEP);
-    mx8650_setImageRecRate(IMG_RATE_HIGHEST);
+    mx8650_setImageRecRate(IMG_RATE_HIGH);
 }
 
 /**
