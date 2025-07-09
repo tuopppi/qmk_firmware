@@ -9,6 +9,7 @@
 
 enum layers {
     DEFAULT = 0,
+//  DEFAULT_ANYMAK_END = 0,
     SYM = 1,
     NUM = 2,
     MOUSE = 3
@@ -50,8 +51,20 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
       KC_A,    KC_X,    KC_C,    KC_F,    KC_B,                         KC_J,    KC_M,    KC_COMM, KC_DOT,  KC_P, 
   //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
-      KC_Z,                      OSL(NUM), KC_AE,  OSL(SYM),   KC_SPACE, CKC_BSPC, KC_SHORTCAT,             KC_QUOTE
+      KC_Z,                      MO(NUM), KC_AE,  MO(SYM),   KC_SPACE, CKC_BSPC, KC_SHORTCAT,             KC_QUOTE
   ),
+  /*
+  [DEFAULT_ANYMAK_END] = LAYOUT(
+  //+--------------------------------------------+                    +---------------------------------------------+
+      KC_ESC,  KC_L,   KC_C,    KC_D,    KC_V,                         KC_Y,    KC_U,    KC_O,    KC_AE,    KC_B,
+  //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
+      KC_F,    KC_N,    KC_R,    KC_T,    KC_G,                      KC_COMM, KC_I,    KC_E,    KC_A,    KC_Q,
+  //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
+      KC_S,    KC_W,    KC_M,    KC_K,  KC_P,                         KC_X,    KC_DOT,    KC_OE,    KC_Z,    KC_H, 
+  //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
+      KC_J,                   MO(NUM), KC_SPACE, MO(SYM),   KC_SPACE, CKC_BSPC, KC_SHORTCAT,             KC_RSFT
+  ),
+  */
   [SYM] = LAYOUT(
   //+--------------------------------------------+                    +---------------------------------------------+
       KC_NO,   KC_LT    , KC_GT, KC_GRAVE, KC_NO,                       KC_AMPERSAND, KC_SEMICOLON, KC_LEFT_BRACKET, KC_RIGHT_BRACKET, KC_NO,
@@ -74,31 +87,62 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   [MOUSE] = LAYOUT(
   //+--------------------------------------------+                    +---------------------------------------------+
-      KC_NO,   KC_NO,   KC_NO,   KC_SCREENCAP, KC_SCREENSHOT,           MS_BTN3, MS_BTN1, MS_UP  , MS_BTN2, KC_NO,
+      KC_NO,   KC_NO,   KC_NO,   KC_SCREENCAP, KC_SCREENSHOT,           KC_NO,  KC_NO,   KC_UP,   KC_NO,   KC_NO,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
-      KC_NO,   KC_NO, KC_NO, KC_NO, KC_NO,                        KC_NO,   MS_LEFT, MS_DOWN, MS_RGHT, KC_NO,
+      KC_NO,   KC_NO, KC_NO, KC_NO, KC_NO,                              KC_NO,  KC_LEFT, KC_DOWN, KC_RIGHT, KC_NO,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
-      KC_NO,   KC_NO, KC_NO, KC_NO, KC_NO,                        KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO, 
+      KC_NO,   KC_NO, KC_NO, KC_NO, KC_NO,                              KC_NO,  KC_NO,   KC_NO,   KC_NO,   KC_NO, 
   //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
       KC_QUIT,                   KC_NO,   KC_NO,  KC_NO,       KC_NO,   KC_NO,   KC_NO,                     QK_BOOT
-  )
+  ),
 };
 
 #include "sm_td.h"
 
+enum combo_events {
+  COMBO_ENTER,
+  COMBO_TAB,
+  COMBO_ML,
+  COMBO_MB1,
+  COMBO_MB2
+};
+
 // COMBOS
+// COMBO_ACTION() works with sm_td by default (plain COMBO() doesn't)
 const uint16_t PROGMEM combo_enter[] = {KC_E, KC_L, COMBO_END};
 const uint16_t PROGMEM combo_tab[] = {KC_COMMA, KC_DOT, COMBO_END};
-const uint16_t PROGMEM combo_layer_mouse[] = {OSL(SYM), KC_SPACE, COMBO_END};
+const uint16_t PROGMEM combo_layer_mouse[] = {MO(SYM), KC_SPACE, COMBO_END};
 const uint16_t PROGMEM combo_ms_btn1[] = {KC_C, KC_F, COMBO_END};
 const uint16_t PROGMEM combo_ms_btn2[] = {KC_X, KC_C, COMBO_END};
+
 combo_t key_combos[] = {
-    COMBO(combo_enter, KC_ENTER),
-    COMBO(combo_tab, KC_TAB),
-    COMBO(combo_layer_mouse , MO(MOUSE)),
-    COMBO(combo_ms_btn1, MS_BTN1),
-    COMBO(combo_ms_btn2, MS_BTN2),
+    [COMBO_ENTER] = COMBO_ACTION(combo_enter),
+    [COMBO_TAB] = COMBO_ACTION(combo_tab),
+    [COMBO_ML] = COMBO_ACTION(combo_layer_mouse),
+    [COMBO_MB1] = COMBO_ACTION(combo_ms_btn1),
+    [COMBO_MB2] = COMBO_ACTION(combo_ms_btn2),
 };
+
+void process_combo_event(uint16_t combo_index, bool pressed) {
+    switch(combo_index) {
+        case COMBO_ENTER:
+            if (pressed) { tap_code16(KC_ENTER); }
+            break;
+        case COMBO_TAB:
+            if (pressed) { tap_code16(KC_TAB); }
+            break;
+        case COMBO_ML:
+            if (pressed) { layer_on(MOUSE); }
+            else { layer_off(MOUSE); }
+            break;
+        case COMBO_MB1:
+            if (pressed) { tap_code16(MS_BTN1); }
+            break;
+        case COMBO_MB2:
+            if (pressed) { tap_code16(MS_BTN2); }
+            break;
+    }
+}
 
 // KEY OVERRIDES
 const key_override_t delete_key_override = ko_make_basic(MOD_MASK_SHIFT, KC_BSPC, KC_DEL);
@@ -202,6 +246,9 @@ smtd_resolution on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap
         SMTD_MT(KC_E, KC_RIGHT_GUI)
         SMTD_MT(KC_L, KC_RIGHT_ALT)
         SMTD_MT(KC_P, KC_RIGHT_CTRL)
+
+        // layer switch
+        SMTD_LT(KC_G, MOUSE)
 
         // tap dance
         SMTD_TD_HOLD_ON_MKEY(CKC_BSPC, KC_BSPC, A(KC_BSPC), 2, true)
