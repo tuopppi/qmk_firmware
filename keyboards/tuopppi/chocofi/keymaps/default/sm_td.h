@@ -481,12 +481,6 @@ bool smtd_process_desired(uint16_t pressed_keycode, keyrecord_t *record, uint16_
                smtd_record_to_str(record),
                smtd_keycode_to_str_uncertain(pressed_keycode, desired_keycode == 0));
 
-#if defined(COMBO_ENABLE) || defined(REPEAT_KEY_ENABLE)
-    if (record->keycode) {
-        return true;
-    }
-#endif
-
     smtd_apply_to_stack(0, pressed_keycode, record, desired_keycode);
     return false;
 }
@@ -1232,6 +1226,7 @@ bool smtd_feature_enabled_default(uint16_t keycode, smtd_feature feature) {
         )                                                    \
     )
 
+//fixme попробовать отказаться от самописной смены слоя
 #define SMTD_LT(...) OVERLOAD4(__VA_ARGS__, SMTD_LT4, SMTD_LT3, SMTD_LT2)(__VA_ARGS__)
 #define SMTD_LT2(key, layer) SMTD_LT3_ON_MKEY(key, key, layer)
 #define SMTD_LT3(key, layer, threshold) SMTD_LT4_ON_MKEY(key, key, layer, threshold)
@@ -1251,10 +1246,6 @@ bool smtd_feature_enabled_default(uint16_t keycode, smtd_feature feature) {
             SMTD_UNREGISTER_16(use_cl, tap_key));             \
     )
 
-#define SMTD_TD(...) OVERLOAD4(__VA_ARGS__, SMTD_TD4, SMTD_TD3, SMTD_TD2)(__VA_ARGS__)
-#define SMTD_TD2(key, tap_key) SMTD_TD3_ON_MKEY(key, key, tap_key)
-#define SMTD_TD3(key, tap_key, threshold) SMTD_TD4_ON_MKEY(key, key, tap_key, threshold)
-#define SMTD_TD4(key, tap_key, threshold, use_cl) SMTD_TD5_ON_MKEY(key, key, tap_key, threshold, use_cl)
 #define SMTD_TD_ON_MKEY(...) OVERLOAD5(__VA_ARGS__, SMTD_TD5_ON_MKEY, SMTD_TD4_ON_MKEY, SMTD_TD3_ON_MKEY)(__VA_ARGS__)
 #define SMTD_TD3_ON_MKEY(...) SMTD_TD4_ON_MKEY(__VA_ARGS__, 1)
 #define SMTD_TD4_ON_MKEY(...) SMTD_TD5_ON_MKEY(__VA_ARGS__, true)
@@ -1270,11 +1261,8 @@ bool smtd_feature_enabled_default(uint16_t keycode, smtd_feature feature) {
             SMTD_UNREGISTER_16(use_cl, tap_key))                 \
     )
 
+// fixme-sm SMTD_TK and others without ON_MKEY
 // multi-tap activated key
-#define SMTD_TK(...) OVERLOAD4(__VA_ARGS__, SMTD_TK4, SMTD_TK3, SMTD_TK2)(__VA_ARGS__)
-#define SMTD_TK2(key, tap_key) SMTD_TK3_ON_MKEY(key, key, tap_key)
-#define SMTD_TK3(key, tap_key, threshold) SMTD_TK3_ON_MKEY(key, key, tap_key, threshold)
-#define SMTD_TK4(key, tap_key, threshold, use_cl) SMTD_TK4_ON_MKEY(key, key, tap_key, threshold, use_cl)
 #define SMTD_TK_ON_MKEY(...) OVERLOAD4(__VA_ARGS__, SMTD_TK4_ON_MKEY, SMTD_TK3_ON_MKEY, SMTD_TK2_ON_MKEY)(__VA_ARGS__)
 #define SMTD_TK2_ON_MKEY(...) SMTD_TK3_ON_MKEY(__VA_ARGS__, 1)
 #define SMTD_TK3_ON_MKEY(...) SMTD_TK4_ON_MKEY(__VA_ARGS__, true)
@@ -1289,10 +1277,6 @@ bool smtd_feature_enabled_default(uint16_t keycode, smtd_feature feature) {
     )
 
 // multi-tap activated layer move
-#define SMTD_TTO(...) OVERLOAD4(__VA_ARGS__, SMTD_TTO4, SMTD_TTO3, SMTD_TTO2)(__VA_ARGS__)
-#define SMTD_TTO2(key, layer) SMTD_TTO3_ON_MKEY(key, key, layer)
-#define SMTD_TTO3(key, layer, threshold) SMTD_TTO3_ON_MKEY(key, key, layer)
-#define SMTD_TTO4(key, layer, threshold, use_cl) SMTD_TTO4_ON_MKEY(key, key, layer, threshold, use_cl)
 #define SMTD_TTO_ON_MKEY(...) OVERLOAD4(__VA_ARGS__, SMTD_TTO4_ON_MKEY, SMTD_TTO3_ON_MKEY, SMTD_TTO2_ON_MKEY)(__VA_ARGS__)
 #define SMTD_TTO2_ON_MKEY(...) SMTD_TTO3_ON_MKEY(__VA_ARGS__, 1)
 #define SMTD_TTO3_ON_MKEY(...) SMTD_TTO4_ON_MKEY(__VA_ARGS__, true)
