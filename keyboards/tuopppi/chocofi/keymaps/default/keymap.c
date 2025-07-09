@@ -136,10 +136,12 @@ void process_combo_event(uint16_t combo_index, bool pressed) {
             else { layer_off(MOUSE); }
             break;
         case COMBO_MB1:
-            if (pressed) { tap_code16(MS_BTN1); }
+            if (pressed) { register_code(MS_BTN1); }
+            else { unregister_code(MS_BTN1); }
             break;
         case COMBO_MB2:
-            if (pressed) { tap_code16(MS_BTN2); }
+            if (pressed) { register_code(MS_BTN2); }
+            else { unregister_code(MS_BTN2); }
             break;
     }
 }
