@@ -45,7 +45,7 @@ const uint32_t PROGMEM unicode_map[] = {
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [DEFAULT] = LAYOUT(
   //+--------------------------------------------+                    +---------------------------------------------+
-      KC_ESC,  KC_W,    KC_D,    KC_R,    KC_K,                         KC_Y,    KC_U,    KC_I,    KC_O,    KC_SCLN,
+      KC_ESC,  KC_W,    KC_D,    KC_R,    KC_K,                         KC_Y,    KC_U,    KC_I,    KC_O,    KC_F12,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
       KC_Q,    KC_S,    KC_T,    KC_V,    KC_G,                         KC_H,    KC_N,    KC_E,    KC_L,    KC_OE,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
@@ -67,9 +67,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   */
   [SYM] = LAYOUT(
   //+--------------------------------------------+                    +---------------------------------------------+
-      KC_NO,   KC_LT    , KC_GT, KC_GRAVE, KC_NO,                       KC_AMPERSAND, KC_SEMICOLON, KC_LEFT_BRACKET, KC_RIGHT_BRACKET, KC_NO,
+      KC_NO,   KC_LT    , KC_GT, KC_GRAVE, KC_NO,                       KC_AMPERSAND, KC_SEMICOLON, KC_LEFT_BRACKET, KC_RIGHT_BRACKET, KC_CIRCUMFLEX,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
-      KC_CIRCUMFLEX, CW_TOGG, KC_PLUS, KC_EQUAL, KC_HASH,               KC_PIPE, KC_COLON, KC_LEFT_PAREN, KC_RIGHT_PAREN, KC_QUESTION,
+      KC_NO,   CW_TOGG, KC_PLUS, KC_EQUAL, KC_HASH,               KC_PIPE, KC_COLON, KC_LEFT_PAREN, KC_RIGHT_PAREN, KC_QUESTION,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
       KC_EXCLAIM, KC_SLASH, KC_ASTERISK, KC_BACKSLASH, KC_NO,        KC_TILDE, KC_DOLLAR, KC_LEFT_CURLY_BRACE, KC_RIGHT_CURLY_BRACE, KC_AT,
   //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
@@ -141,6 +141,31 @@ void process_combo_event(uint16_t combo_index, bool pressed) {
         case COMBO_MB2:
             if (pressed) { tap_code16(MS_BTN2); }
             break;
+    }
+}
+
+// https://docs.qmk.fm/features/caps_word#configure-which-keys-are-word-breaking
+bool caps_word_press_user(uint16_t keycode) {
+    switch (keycode) {
+        // Keycodes that continue Caps Word, with shift applied.
+        case KC_A ... KC_Z:
+        case KC_MINS:
+        case KC_OE:
+        case KC_AE:
+            add_weak_mods(MOD_BIT(KC_LSFT));  // Apply shift to next key.
+            return true;
+
+        // Keycodes that continue Caps Word, without shifting.
+        case KC_1 ... KC_0:
+        case KC_BSPC:
+        case KC_DEL:
+        case KC_UNDS:
+        case KC_DOT:
+        case KC_COMM:
+            return true;
+
+        default:
+            return false;  // Deactivate Caps Word.
     }
 }
 
