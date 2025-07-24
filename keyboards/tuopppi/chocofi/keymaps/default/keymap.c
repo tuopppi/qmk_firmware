@@ -9,14 +9,10 @@
 
 enum layers {
     DEFAULT = 0,
-//  DEFAULT_ANYMAK_END = 0,
+    DEFAULT_ANYMAK_END = 4,
     SYM = 1,
     NUM = 2,
     MOUSE = 3
-};
-
-enum custom_keycodes {
-    CKC_BSPC = SAFE_RANGE,
 };
 
 enum unicode_names {
@@ -51,9 +47,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
       KC_A,    KC_X,    KC_C,    KC_F,    KC_B,                         KC_J,    KC_M,    KC_COMM, KC_DOT,  KC_P, 
   //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
-      KC_Z,                      MO(NUM), KC_AE,  MO(SYM),   KC_SPACE, CKC_BSPC, KC_SHORTCAT,             KC_QUOTE
+      KC_Z,                      MO(NUM), KC_AE,  MO(SYM),   KC_SPACE, KC_BSPC, KC_SHORTCAT,             KC_QUOTE
   ),
-  /*
+  /* https://keyboard-layout-try-out.pages.dev/?l0r0=q+w+d+r+k++y+u+i+o+%C3%B6&l0r1=a+s+t+v+g++h+n+e+l+p+&l0r2=z+x+c+f+b++j+m+%2C+.+%27&l1r0=f+l+c+d+v++y+u+o+%C3%A4+b&l1r1=s+n+r+t+g++%2C+i+e+a+q&l1r2=j+w+m+k+p++x+.+%C3%B6+z+h&z=z */
   [DEFAULT_ANYMAK_END] = LAYOUT(
   //+--------------------------------------------+                    +---------------------------------------------+
       KC_ESC,  KC_L,   KC_C,    KC_D,    KC_V,                         KC_Y,    KC_U,    KC_O,    KC_AE,    KC_B,
@@ -62,9 +58,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
       KC_S,    KC_W,    KC_M,    KC_K,  KC_P,                         KC_X,    KC_DOT,    KC_OE,    KC_Z,    KC_H, 
   //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
-      KC_J,                   MO(NUM), KC_SPACE, MO(SYM),   KC_SPACE, CKC_BSPC, KC_SHORTCAT,             KC_RSFT
+      KC_J,                   MO(NUM), KC_SPACE, MO(SYM),   KC_SPACE, KC_BSPC, KC_SHORTCAT,             KC_RSFT
   ),
-  */
   [SYM] = LAYOUT(
   //+--------------------------------------------+                    +---------------------------------------------+
       KC_NO,   KC_LT    , KC_GT, KC_GRAVE, KC_NO,                       KC_AMPERSAND, KC_SEMICOLON, KC_LEFT_BRACKET, KC_RIGHT_BRACKET, KC_CIRCUMFLEX,
@@ -77,13 +72,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   [NUM] = LAYOUT(
   //+--------------------------------------------+                    +---------------------------------------------+
-      KC_MISSION_CTRL,KC_F1,KC_UP,KC_F2,   KC_NO,                        KC_NO,   KC_7,    KC_8,    KC_9,    KC_NO,
+      KC_NO,   KC_F1,   KC_UP,   KC_F2,   KC_NO,                        KC_NO,   KC_7,    KC_8,    KC_9,    KC_NO,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
       KC_HOME, KC_LEFT, KC_DOWN, KC_RIGHT, KC_END,                      KC_NO,   KC_4,    KC_5,    KC_6,    KC_NO,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
       KC_NO,   G(KC_X), G(KC_C), G(KC_V), KC_NO,                        KC_0,    KC_1,    KC_2,    KC_3,    KC_NO, 
   //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
-      KC_NO,                     KC_NO,   KC_NO,   KC_NO,      CKC_BSPC, KC_DEL, KC_NO,                     KC_NO
+      KC_NO,                     KC_NO,   KC_NO,   KC_NO,      KC_BSPC, KC_DEL, KC_NO,                     KC_NO
   ),
   [MOUSE] = LAYOUT(
   //+--------------------------------------------+                    +---------------------------------------------+
@@ -278,7 +273,8 @@ smtd_resolution on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap
         SMTD_LT(KC_G, MOUSE)
 
         // tap dance
-        SMTD_TD_HOLD_ON_MKEY(CKC_BSPC, KC_BSPC, A(KC_BSPC), 2, true)
+        SMTD_TD_HOLD_ON_MKEY(KC_BSPC, KC_BSPC, A(KC_BSPC), 2, true)
+        SMTD_TD_ON_MKEY(KC_Z, KC_Z, KC_MISSION_CTRL)        
     }
 
     return SMTD_RESOLUTION_UNHANDLED;
