@@ -15,7 +15,8 @@
 uint8_t readByte(void)
 {
     uint8_t data = 0x00;
-
+    
+    chSysLock(); // disable interrupts
     for (unsigned char bit = 0; bit < 8; bit++) {
         gpio_write_pin_low(MX8650_SCLK_PIN);
         wait_us(1);
@@ -23,12 +24,14 @@ uint8_t readByte(void)
         data |= (gpio_read_pin(MX8650_SDIO_PIN) << (7 - bit));
         wait_us(3);
     }
+    chSysUnlock();
 
     return data;
 }
 
 void sendByte(uint8_t byte)
 {
+    chSysLock(); // disable interrupts
     for (unsigned char bit = 0; bit < 8; bit++) {
         bool is_one = byte & (1 << (7 - bit));
         if (is_one) {
@@ -45,28 +48,24 @@ void sendByte(uint8_t byte)
             wait_us(3);
         }
     }
+    chSysUnlock();
 }
 
 uint8_t mx8650_read(uint8_t addr)
 {
-    chSysLock(); // disable interrupts
     sendByte(addr);
     gpio_set_pin_input(MX8650_SDIO_PIN);
-    chSysUnlock();
-    wait_us(100);
-    chSysLock();
+    wait_us(110);
     uint8_t data = readByte();
     gpio_set_pin_output(MX8650_SDIO_PIN);
-    chSysUnlock();
     return data;
 }
 
 void mx8650_write(uint8_t addr, uint8_t data)
 {
-    chSysLock(); // disable interrupts
+    wait_us(10);
     sendByte(0x80 | addr); // set write bit
     sendByte(data);
-    chSysUnlock();
 }
 
 void mx8650_init(void)
@@ -76,6 +75,10 @@ void mx8650_init(void)
     gpio_set_pin_output(MX8650_SDIO_PIN);
 }
 
+/**
+ * Read Product ID, The value in this register can’t change.
+ * It can be used to verify the serial communications link is OK.
+ */
 bool mx8650_verify(void)
 {
     return mx8650_read(0x00) == 48;
@@ -249,12 +252,30 @@ void mx8650_setImageRecRate(uint8_t rate)
 
 report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report)
 {
-  uint8_t data = mx8650_getMotionData();
+  if (mx8650_verify()) {
+    uint8_t data = mx8650_getMotionData();
 
-  if (data >= 0x84) {
-    mouse_report.x = mx8650_getDeltaX();
-    mouse_report.y = mx8650_getDeltaY();
-    // printf("%d %d\n", mouse_report.x, mouse_report.y);
+    if (data >= 0x84) {
+        mouse_report.x = mx8650_getDeltaX();
+        mouse_report.y = mx8650_getDeltaY();
+        //printf("%d %d\n", mouse_report.x, mouse_report.y);
+    }
+  } else {
+    /*
+    If the mouse controller and the mouse sensor get out of synchronization,
+    then the data either written or read from the registers will be incorrect.
+    In such a case, an easy way to solve this condition is to toggle the SCLK line from high to low for least t_RESYNC (1 us),
+    and then MUST toggle it from low to high to wait at least t_SIWTT (1.7/32/320 ms) to reach re-synchronous the serial port.
+    This method is called by "watchdog timer timeout". The mouse sensor will reset the serial port without resetting
+    the registers and be prepared for the beginning of a new transmission.
+    */
+
+    printf("“watchdog timer timeout”\n");
+    gpio_write_pin_low(MX8650_SCLK_PIN);
+    wait_us(2);
+    gpio_write_pin_high(MX8650_SCLK_PIN);
+    
+    wait_ms(2);
   }
 
   return mouse_report;
@@ -303,9 +324,9 @@ void pointing_device_driver_set_cpi(uint16_t cpi)
 void keyboard_post_init_kb(void) {
     wait_ms(45); // Power up time
     mx8650_write(WRITE_PROTECT_ADDR, WRITE_PROTECT_DISABLE);
-    mx8650_setDPI(DPI_1200);
+    mx8650_setDPI(DPI_1000);
     mx8650_setSleepMode(DISABLE_SLEEP);
-    mx8650_setImageRecRate(IMG_RATE_HIGH);
+    mx8650_setImageRecRate(IMG_RATE_LOWEST);
 }
 
 /**
