@@ -47,18 +47,18 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
       KC_A,    KC_X,    KC_C,    KC_F,    KC_B,                         KC_J,    KC_M,    KC_COMM, KC_DOT,  KC_P, 
   //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
-      KC_Z,                      MO(NUM), KC_AE,  MO(SYM),   KC_SPACE, KC_BSPC, KC_SHORTCAT,             KC_QUOTE
+      KC_Z,                      MO(NUM), KC_AE,  MO(SYM),    KC_SPACE, KC_BSPC, KC_MISSION_CTRL,                KC_QUOTE
   ),
   /* https://keyboard-layout-try-out.pages.dev/?l0r0=q+w+d+r+k++y+u+i+o+%C3%B6&l0r1=a+s+t+v+g++h+n+e+l+p+&l0r2=z+x+c+f+b++j+m+%2C+.+%27&l1r0=f+l+c+d+v++y+u+o+%C3%A4+b&l1r1=s+n+r+t+g++%2C+i+e+a+q&l1r2=j+w+m+k+p++x+.+%C3%B6+z+h&z=z */
   [DEFAULT_ANYMAK_END] = LAYOUT(
   //+--------------------------------------------+                    +---------------------------------------------+
-      KC_ESC,  KC_L,   KC_C,    KC_D,    KC_V,                         KC_Y,    KC_U,    KC_O,    KC_AE,    KC_B,
+      KC_ESC,  KC_L,    KC_C,    KC_D,    KC_V,                         KC_Y,    KC_U,    KC_O,    KC_AE,   KC_B,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
-      KC_F,    KC_N,    KC_R,    KC_T,    KC_G,                      KC_COMM, KC_I,    KC_E,    KC_A,    KC_Q,
+      KC_F,    KC_N,    KC_R,    KC_T,    KC_G,                         KC_COMM, KC_I,    KC_E,    KC_A,    KC_Q,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
-      KC_S,    KC_W,    KC_M,    KC_K,  KC_P,                         KC_X,    KC_DOT,    KC_OE,    KC_Z,    KC_H, 
+      KC_S,    KC_W,    KC_M,    KC_K,    KC_P,                         KC_X,    KC_DOT,  KC_OE,   KC_Z,    KC_H, 
   //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
-      KC_J,                   MO(NUM), KC_SPACE, MO(SYM),   KC_SPACE, KC_BSPC, KC_SHORTCAT,             KC_RSFT
+      KC_J,                      MO(NUM), KC_NO,   MO(SYM),    KC_SPACE,KC_BSPC, KC_NO,                     KC_RSFT
   ),
   [SYM] = LAYOUT(
   //+--------------------------------------------+                    +---------------------------------------------+
@@ -269,12 +269,10 @@ smtd_resolution on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap
         SMTD_MT(KC_L, KC_RIGHT_ALT)
         SMTD_MT(KC_P, KC_RIGHT_CTRL)
 
-        // layer switch
-        SMTD_LT(KC_G, MOUSE)
-
         // tap dance
         SMTD_TD_HOLD_ON_MKEY(KC_BSPC, KC_BSPC, A(KC_BSPC), 2, true)
-        SMTD_TD_ON_MKEY(KC_Z, KC_Z, KC_MISSION_CTRL)        
+        SMTD_TD_ON_MKEY(KC_B, KC_B, KC_MISSION_CTRL)
+        SMTD_TD_ON_MKEY(KC_F, KC_F, MS_BTN1)
     }
 
     return SMTD_RESOLUTION_UNHANDLED;
