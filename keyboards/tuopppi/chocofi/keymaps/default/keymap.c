@@ -6,6 +6,7 @@
 #include "process_combo.h"
 #include "process_key_override.h"
 #include "mx8650.h"
+#include "sm_td.h"
 
 enum layers {
     DEFAULT = 0,
@@ -91,8 +92,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
       KC_QUIT,                   KC_NO,   KC_NO,  KC_NO,       KC_NO,   KC_NO,   KC_NO,                     QK_BOOT
   ),
 };
-
-#include "sm_td.h"
 
 enum combo_events {
   COMBO_ENTER,
