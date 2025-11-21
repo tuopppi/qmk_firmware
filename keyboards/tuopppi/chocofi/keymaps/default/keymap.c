@@ -238,7 +238,9 @@ uint32_t get_smtd_timeout(uint16_t keycode, smtd_timeout timeout) {
         case KC_N:
             // all but left and right shift SM_TD keys get short release
             // timeout to avoid accidental triggering of tap dance keys
-            if (SMTD_TIMEOUT_RELEASE) return 80;
+            if (timeout == SMTD_TIMEOUT_RELEASE) {
+                return 100;
+            }
     }
 
     return get_smtd_timeout_default(timeout);

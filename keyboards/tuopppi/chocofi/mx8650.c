@@ -270,7 +270,7 @@ report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report)
     the registers and be prepared for the beginning of a new transmission.
     */
 
-    printf("“watchdog timer timeout”\n");
+    printf("watchdog timer timeout\n");
     gpio_write_pin_low(MX8650_SCLK_PIN);
     wait_us(2);
     gpio_write_pin_high(MX8650_SCLK_PIN);
