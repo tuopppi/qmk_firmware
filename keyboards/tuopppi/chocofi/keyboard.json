@@ -10,11 +10,12 @@
         "console": true,
         "extrakey": true,
         "mousekey": true,
+        "pointing_device": true,
         "nkro": true
     },
     "matrix_pins": {
-        "cols": ["GP5", "GP6", "GP7", "GP8", "GP4", "GP28", "GP14", "GP15", "GP26", "GP27"],
-        "rows": ["GP12", "GP11", "GP10", "GP9"]
+        "cols": ["GP29", "GP15", "GP26", "GP28", "GP27", "GP10", "GP14", "GP13", "GP12", "GP11"],
+        "rows": ["GP6", "GP9", "GP8", "GP7"]
     },
     "processor": "RP2040",
     "usb": {
