@@ -10,7 +10,6 @@
 
 enum layers {
     DEFAULT = 0,
-    DEFAULT_ANYMAK_END = 4,
     SYM = 1,
     NUM = 2,
     MOUSE = 3
@@ -48,26 +47,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
       KC_A,    KC_X,    KC_C,    KC_F,    KC_B,                         KC_J,    KC_M,    KC_COMM, KC_DOT,  KC_P, 
   //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
-      KC_Z,                      MO(NUM), KC_AE,  MO(SYM),    KC_SPACE, KC_BSPC, KC_MISSION_CTRL,                KC_QUOTE
-  ),
-  /* https://keyboard-layout-try-out.pages.dev/?l0r0=q+w+d+r+k++y+u+i+o+%C3%B6&l0r1=a+s+t+v+g++h+n+e+l+p+&l0r2=z+x+c+f+b++j+m+%2C+.+%27&l1r0=f+l+c+d+v++y+u+o+%C3%A4+b&l1r1=s+n+r+t+g++%2C+i+e+a+q&l1r2=j+w+m+k+p++x+.+%C3%B6+z+h&z=z */
-  [DEFAULT_ANYMAK_END] = LAYOUT(
-  //+--------------------------------------------+                    +---------------------------------------------+
-      KC_ESC,  KC_L,    KC_C,    KC_D,    KC_V,                         KC_Y,    KC_U,    KC_O,    KC_AE,   KC_B,
-  //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
-      KC_F,    KC_N,    KC_R,    KC_T,    KC_G,                         KC_COMM, KC_I,    KC_E,    KC_A,    KC_Q,
-  //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
-      KC_S,    KC_W,    KC_M,    KC_K,    KC_P,                         KC_X,    KC_DOT,  KC_OE,   KC_Z,    KC_H, 
-  //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
-      KC_J,                      MO(NUM), KC_NO,   MO(SYM),    KC_SPACE,KC_BSPC, KC_NO,                     KC_RSFT
+      KC_Z,                      MO(NUM), KC_AE,  MO(SYM),    KC_SPACE, KC_BSPC, KC_NO,                     KC_QUOTE
   ),
   [SYM] = LAYOUT(
   //+--------------------------------------------+                    +---------------------------------------------+
       KC_NO,   KC_LT    , KC_GT, KC_GRAVE, KC_NO,                       KC_AMPERSAND, KC_SEMICOLON, KC_LEFT_BRACKET, KC_RIGHT_BRACKET, KC_CIRCUMFLEX,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
-      KC_NO,   CW_TOGG, KC_PLUS, KC_EQUAL, KC_HASH,               KC_PIPE, KC_COLON, KC_LEFT_PAREN, KC_RIGHT_PAREN, KC_QUESTION,
+      KC_NO,   CW_TOGG, KC_PLUS, KC_EQUAL, KC_HASH,                     KC_PIPE, KC_COLON, KC_LEFT_PAREN, KC_RIGHT_PAREN, KC_QUESTION,
   //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
-      KC_EXCLAIM, KC_SLASH, KC_ASTERISK, KC_BACKSLASH, KC_NO,        KC_TILDE, KC_DOLLAR, KC_LEFT_CURLY_BRACE, KC_RIGHT_CURLY_BRACE, KC_AT,
+      KC_EXCLAIM, KC_SLASH, KC_ASTERISK, KC_BACKSLASH, KC_NO,           KC_TILDE, KC_DOLLAR, KC_LEFT_CURLY_BRACE, KC_RIGHT_CURLY_BRACE, KC_AT,
   //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
       KC_NO,                     KC_TRNS, KC_TRNS, KC_TRNS,    G(KC_Z), SGUI(KC_Z), KC_TRNS,               KC_PERCENT
   ),
@@ -98,7 +86,8 @@ enum combo_events {
   COMBO_TAB,
   COMBO_ML,
   COMBO_MB1,
-  COMBO_MB2
+  COMBO_MB2,
+  COMBO_QK_BOOT
 };
 
 // COMBOS
@@ -108,6 +97,7 @@ const uint16_t PROGMEM combo_tab[] = {KC_COMMA, KC_DOT, COMBO_END};
 const uint16_t PROGMEM combo_layer_mouse[] = {MO(SYM), KC_SPACE, COMBO_END};
 const uint16_t PROGMEM combo_ms_btn1[] = {KC_C, KC_F, COMBO_END};
 const uint16_t PROGMEM combo_ms_btn2[] = {KC_X, KC_C, COMBO_END};
+const uint16_t PROGMEM combo_qk_boot[] = {KC_W, KC_D, KC_I, KC_O, COMBO_END}; // fallback if you lose access to mouse layer
 
 combo_t key_combos[] = {
     [COMBO_ENTER] = COMBO_ACTION(combo_enter),
@@ -115,6 +105,7 @@ combo_t key_combos[] = {
     [COMBO_ML] = COMBO_ACTION(combo_layer_mouse),
     [COMBO_MB1] = COMBO_ACTION(combo_ms_btn1),
     [COMBO_MB2] = COMBO_ACTION(combo_ms_btn2),
+    [COMBO_QK_BOOT] = COMBO_ACTION(combo_qk_boot),
 };
 
 void process_combo_event(uint16_t combo_index, bool pressed) {
@@ -136,6 +127,9 @@ void process_combo_event(uint16_t combo_index, bool pressed) {
         case COMBO_MB2:
             if (pressed) { register_code(MS_BTN2); }
             else { unregister_code(MS_BTN2); }
+            break;
+        case COMBO_QK_BOOT:
+            if (pressed) { reset_keyboard(); }
             break;
     }
 }
@@ -207,6 +201,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     // if (record->event.pressed) { mx8650_Log(); }
 
     return true; // Process all other keycodes normally
+}
+
+void keyboard_post_init_user(void) {
+    pointing_device_set_cpi(1000);
 }
 
 report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
