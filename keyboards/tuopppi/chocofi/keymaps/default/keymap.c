@@ -5,7 +5,6 @@
 #include "action.h"
 #include "process_combo.h"
 #include "process_key_override.h"
-#include "mx8650.h"
 #include "sm_td.h"
 
 enum layers {
@@ -15,69 +14,38 @@ enum layers {
     MOUSE = 3
 };
 
-enum unicode_names {
-    ae, // ä
-    AE, // Ä
-    oe, // ö
-    OE, // Ö
-};
-
-
-const uint32_t PROGMEM unicode_map[] = {
-    [ae] = 0x00E4,
-    [AE] = 0x00C4,
-    [oe] = 0x00F6,
-    [OE] = 0x00D6,
-};
-
 #define KC_QUIT (QK_LCTL | QK_LGUI | KC_Q)
 #define KC_SHORTCAT MEH(KC_SPACE)
 #define KC_MISSION_CTRL MEH(KC_M)
-#define KC_OE  UP(oe, OE)
-#define KC_AE  UP(ae, AE)
+#define KC_OE  RALT(KC_O)
+#define KC_AE  RALT(KC_A)
 #define KC_SCREENSHOT LSG(KC_4)
 #define KC_SCREENCAP  LSG(KC_5)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [DEFAULT] = LAYOUT(
-  //+--------------------------------------------+                    +---------------------------------------------+
       KC_ESC,  KC_W,    KC_D,    KC_R,    KC_K,                         KC_Y,    KC_U,    KC_I,    KC_O,    KC_F12,
-  //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
       KC_Q,    KC_S,    KC_T,    KC_V,    KC_G,                         KC_H,    KC_N,    KC_E,    KC_L,    KC_OE,
-  //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
       KC_A,    KC_X,    KC_C,    KC_F,    KC_B,                         KC_J,    KC_M,    KC_COMM, KC_DOT,  KC_P, 
-  //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
       KC_Z,                      MO(NUM), KC_AE,  MO(SYM),    KC_SPACE, KC_BSPC, KC_NO,                     KC_QUOTE
   ),
   [SYM] = LAYOUT(
-  //+--------------------------------------------+                    +---------------------------------------------+
       KC_NO,   KC_LT    , KC_GT, KC_GRAVE, KC_NO,                       KC_AMPERSAND, KC_SEMICOLON, KC_LEFT_BRACKET, KC_RIGHT_BRACKET, KC_CIRCUMFLEX,
-  //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
       KC_NO,   CW_TOGG, KC_PLUS, KC_EQUAL, KC_HASH,                     KC_PIPE, KC_COLON, KC_LEFT_PAREN, KC_RIGHT_PAREN, KC_QUESTION,
-  //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
       KC_EXCLAIM, KC_SLASH, KC_ASTERISK, KC_BACKSLASH, KC_NO,           KC_TILDE, KC_DOLLAR, KC_LEFT_CURLY_BRACE, KC_RIGHT_CURLY_BRACE, KC_AT,
-  //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
       KC_NO,                     KC_TRNS, KC_TRNS, KC_TRNS,    G(KC_Z), SGUI(KC_Z), KC_TRNS,               KC_PERCENT
   ),
   [NUM] = LAYOUT(
-  //+--------------------------------------------+                    +---------------------------------------------+
       KC_NO,   KC_F1,   KC_UP,   KC_F2,   KC_NO,                        KC_NO,   KC_7,    KC_8,    KC_9,    KC_NO,
-  //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
       KC_HOME, KC_LEFT, KC_DOWN, KC_RIGHT, KC_END,                      KC_NO,   KC_4,    KC_5,    KC_6,    KC_NO,
-  //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
       KC_NO,   G(KC_X), G(KC_C), G(KC_V), KC_NO,                        KC_0,    KC_1,    KC_2,    KC_3,    KC_NO, 
-  //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
       KC_NO,                     KC_NO,   KC_NO,   KC_NO,      KC_BSPC, KC_DEL, KC_NO,                     KC_NO
   ),
   [MOUSE] = LAYOUT(
-  //+--------------------------------------------+                    +---------------------------------------------+
       KC_NO,   KC_NO,   KC_NO,   KC_SCREENCAP, KC_SCREENSHOT,           KC_NO,  KC_NO,   KC_UP,   KC_NO,   KC_NO,
-  //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
-      KC_NO,   KC_NO, KC_NO, KC_NO, KC_NO,                              KC_NO,  KC_LEFT, KC_DOWN, KC_RIGHT, KC_NO,
-  //|--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+---------|
-      KC_NO,   KC_NO, KC_NO, KC_NO, KC_NO,                              KC_NO,  KC_NO,   KC_NO,   KC_NO,   KC_NO, 
-  //|--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+---------|
-      KC_QUIT,                   KC_NO,   KC_NO,  KC_NO,       KC_NO,   KC_NO,   KC_NO,                     QK_BOOT
+      KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,                        KC_NO,  KC_LEFT, KC_DOWN, KC_RIGHT, KC_NO,
+      KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,                        KC_NO,  KC_NO,   KC_NO,   KC_NO,   KC_NO, 
+      KC_QUIT,                   KC_NO,   KC_NO,  KC_NO,       KC_NO,   KC_NO,  KC_NO,                     QK_BOOT
   ),
 };
 
@@ -256,17 +224,19 @@ uint32_t get_smtd_timeout(uint16_t keycode, smtd_timeout timeout) {
             SMTD_UNREGISTER_16(use_cl, tap_key))                 \
     )
 
+os_variant_t last_detected_os = OS_MACOS;
+
 smtd_resolution on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
     switch (keycode) {
         // home row mods
-        SMTD_MT(KC_A, KC_LEFT_CTRL)
+        SMTD_MT(KC_A, (last_detected_os == OS_MACOS ? KC_LEFT_CTRL : KC_LEFT_GUI))
         SMTD_MT(KC_S, KC_LEFT_ALT)
-        SMTD_MT(KC_T, KC_LEFT_GUI)
+        SMTD_MT(KC_T, (last_detected_os == OS_MACOS ? KC_LEFT_GUI : KC_LEFT_CTRL))
         SMTD_MT(KC_V, KC_LSFT)
         SMTD_MT(KC_N, KC_RSFT)
-        SMTD_MT(KC_E, KC_RIGHT_GUI)
+        SMTD_MT(KC_E, (last_detected_os == OS_MACOS ? KC_RIGHT_GUI : KC_RIGHT_CTRL))
         SMTD_MT(KC_L, KC_RIGHT_ALT)
-        SMTD_MT(KC_P, KC_RIGHT_CTRL)
+        SMTD_MT(KC_P, (last_detected_os == OS_MACOS ? KC_RIGHT_CTRL : KC_RIGHT_GUI))
 
         // tap dance
         SMTD_TD_HOLD_ON_MKEY(KC_BSPC, KC_BSPC, A(KC_BSPC), 2, true)
@@ -277,3 +247,8 @@ smtd_resolution on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap
     return SMTD_RESOLUTION_UNHANDLED;
 }
 
+
+bool process_detected_host_os_user(os_variant_t detected_os) {
+    last_detected_os = detected_os;
+    return true;
+}
