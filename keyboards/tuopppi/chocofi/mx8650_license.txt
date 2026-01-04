@@ -1,3 +1,0 @@
-https://github.com/styropyr0/MX8650
-
-This library is licensed under the MIT License
