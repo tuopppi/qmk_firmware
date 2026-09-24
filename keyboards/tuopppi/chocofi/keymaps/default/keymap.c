@@ -27,7 +27,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
       KC_ESC,  KC_W,    KC_D,    KC_R,    KC_K,                         KC_Y,    KC_U,    KC_I,    KC_O,    KC_F12,
       KC_Q,    KC_S,    KC_T,    KC_V,    KC_G,                         KC_H,    KC_N,    KC_E,    KC_L,    KC_OE,
       KC_A,    KC_X,    KC_C,    KC_F,    KC_B,                         KC_J,    KC_M,    KC_COMM, KC_DOT,  KC_P, 
-      KC_Z,                      MO(NUM), KC_AE,  MO(SYM),    KC_SPACE, KC_BSPC, KC_NO,                     KC_QUOTE
+      KC_Z,                      MO(NUM), KC_AE,  MO(SYM),    KC_SPACE, KC_BSPC, KC_MISSION_CTRL,           KC_QUOTE
   ),
   [SYM] = LAYOUT(
       KC_NO,   KC_LT    , KC_GT, KC_GRAVE, KC_NO,                       KC_AMPERSAND, KC_SEMICOLON, KC_LEFT_BRACKET, KC_RIGHT_BRACKET, KC_CIRCUMFLEX,
@@ -42,8 +42,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
       KC_NO,                     KC_NO,   KC_NO,   KC_NO,      KC_BSPC, KC_DEL, KC_NO,                     KC_NO
   ),
   [MOUSE] = LAYOUT(
-      KC_NO,   KC_NO,   KC_NO,   KC_SCREENCAP, KC_SCREENSHOT,           KC_NO,  KC_NO,   KC_UP,   KC_NO,   KC_NO,
-      KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,                        KC_NO,  KC_LEFT, KC_DOWN, KC_RIGHT, KC_NO,
+      KC_NO,   KC_NO,   KC_NO,   KC_SCREENCAP, KC_SCREENSHOT,           KC_NO,  KC_NO,   KC_NO,   KC_NO,   KC_NO,
+      KC_NO,   KC_NO,   MS_BTN2, MS_BTN1, KC_NO,                        KC_NO,  MS_BTN4, MS_BTN3, MS_BTN5, KC_NO,
       KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,                        KC_NO,  KC_NO,   KC_NO,   KC_NO,   KC_NO, 
       KC_QUIT,                   KC_NO,   KC_NO,  KC_NO,       KC_NO,   KC_NO,  KC_NO,                     QK_BOOT
   ),
@@ -160,13 +160,11 @@ float scroll_accumulated_h = 0;
 float scroll_accumulated_v = 0;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    set_scrolling = record->event.pressed && keycode != MS_BTN1 && keycode != MS_BTN2 && keycode != MS_BTN3;
+    set_scrolling = record->event.pressed && keycode == MO(SYM);
 
     if (!process_smtd(keycode, record)) {
         return false;
     }
-
-    // if (record->event.pressed) { mx8650_Log(); }
 
     return true; // Process all other keycodes normally
 }
@@ -205,7 +203,7 @@ uint32_t get_smtd_timeout(uint16_t keycode, smtd_timeout timeout) {
             // all but left and right shift SM_TD keys get short release
             // timeout to avoid accidental triggering of tap dance keys
             if (timeout == SMTD_TIMEOUT_RELEASE) {
-                return 100;
+                return 50;
             }
     }
 
@@ -233,6 +231,8 @@ smtd_resolution on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap
         SMTD_MT(KC_S, KC_LEFT_ALT)
         SMTD_MT(KC_T, (last_detected_os == OS_MACOS ? KC_LEFT_GUI : KC_LEFT_CTRL))
         SMTD_MT(KC_V, KC_LSFT)
+        SMTD_MT(KC_Z, KC_LSFT) // shift + MB1 click
+
         SMTD_MT(KC_N, KC_RSFT)
         SMTD_MT(KC_E, (last_detected_os == OS_MACOS ? KC_RIGHT_GUI : KC_RIGHT_CTRL))
         SMTD_MT(KC_L, KC_RIGHT_ALT)
@@ -240,8 +240,11 @@ smtd_resolution on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap
 
         // tap dance
         SMTD_TD_HOLD_ON_MKEY(KC_BSPC, KC_BSPC, A(KC_BSPC), 2, true)
-        SMTD_TD_ON_MKEY(KC_B, KC_B, KC_MISSION_CTRL)
+        // SMTD_TD_ON_MKEY(KC_B, KC_B, KC_MISSION_CTRL)
         SMTD_TD_ON_MKEY(KC_F, KC_F, MS_BTN1)
+
+        // layer toggles
+        SMTD_LT(KC_AE, MOUSE)
     }
 
     return SMTD_RESOLUTION_UNHANDLED;

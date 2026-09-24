@@ -6,10 +6,7 @@
     "diode_direction": "COL2ROW",
     "features": {
         "bootmagic": true,
-        "command": false,
         "console": true,
-        "extrakey": true,
-        "mousekey": true,
         "pointing_device": true,
         "nkro": true
     },
@@ -21,8 +18,7 @@
     "usb": {
         "device_version": "1.0.0",
         "vid": "0xA8F8",
-        "pid": "0x1830",
-        "polling_interval": 1
+        "pid": "0x1830"
     },
     "dynamic_keymap": {
         "layer_count": 10
