@@ -13,6 +13,7 @@
 //#define SMTD_DEBUG_ENABLED
 #define MAX_DEFERRED_EXECUTORS 10 // sm_td
 #define TAPPING_TERM 220
+#define SMTD_GLOBAL_RELEASE_RATIO 0
 
 // This is the time in ms to consider two keys released within that period as a hold action for the first key and a tap action for second.
 // If two keys has bigger time between their releases, they will be considered as a tap action for both keys.
