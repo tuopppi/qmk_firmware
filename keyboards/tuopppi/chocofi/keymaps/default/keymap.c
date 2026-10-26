@@ -224,19 +224,21 @@ uint32_t get_smtd_timeout(uint16_t keycode, smtd_timeout timeout) {
 
 os_variant_t last_detected_os = OS_MACOS;
 
+#define IS_APPLE_HOST (last_detected_os == OS_MACOS || last_detected_os == OS_IOS)
+
 smtd_resolution on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
     switch (keycode) {
         // home row mods
-        SMTD_MT(KC_A, (last_detected_os == OS_MACOS ? KC_LEFT_CTRL : KC_LEFT_GUI))
+        SMTD_MT(KC_A, (IS_APPLE_HOST ? KC_LEFT_CTRL : KC_LEFT_GUI))
         SMTD_MT(KC_S, KC_LEFT_ALT)
-        SMTD_MT(KC_T, (last_detected_os == OS_MACOS ? KC_LEFT_GUI : KC_LEFT_CTRL))
+        SMTD_MT(KC_T, (IS_APPLE_HOST ? KC_LEFT_GUI : KC_LEFT_CTRL))
         SMTD_MT(KC_V, KC_LSFT)
         SMTD_MT(KC_Z, KC_LSFT) // shift + MB1 click
 
         SMTD_MT(KC_N, KC_RSFT)
-        SMTD_MT(KC_E, (last_detected_os == OS_MACOS ? KC_RIGHT_GUI : KC_RIGHT_CTRL))
+        SMTD_MT(KC_E, (IS_APPLE_HOST ? KC_RIGHT_GUI : KC_RIGHT_CTRL))
         SMTD_MT(KC_L, KC_RIGHT_ALT)
-        SMTD_MT(KC_P, (last_detected_os == OS_MACOS ? KC_RIGHT_CTRL : KC_RIGHT_GUI))
+        SMTD_MT(KC_P, (IS_APPLE_HOST ? KC_RIGHT_CTRL : KC_RIGHT_GUI))
 
         // tap dance
         SMTD_TD_HOLD_ON_MKEY(KC_BSPC, KC_BSPC, A(KC_BSPC), 2, true)
